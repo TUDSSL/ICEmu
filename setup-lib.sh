@@ -14,5 +14,14 @@ echo "Build capstone"
 CAPSTONE_ARCHS="arm" ./make.sh
 popd
 
+pushd jsoncpp
+echo "Build jsoncpp"
+mkdir -p build
+pushd build
+cmake ../
+make -j4
+popd
+popd
+
 popd
 
