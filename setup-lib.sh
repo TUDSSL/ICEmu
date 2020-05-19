@@ -26,13 +26,5 @@ make -j4
 popd
 popd
 
-pushd boost
-echo "Build boost"
-git submodule update --init --recursive
-./bootstrap.sh
-./b2 headers
-./b2 program_options
-popd
-
 popd
 
