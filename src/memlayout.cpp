@@ -130,6 +130,43 @@ bool MemLayout::collect()
             memory.at(mem_idx).memload.push_back(mload);
         }
     }
+
+    // Build a map for the symbols (aka the symbol table)
+    size_t sec_num = elf_reader.sections.size();
+    for (int i=0; i<sec_num; i++) {
+        section *psec = elf_reader.sections[i];
+        if (psec->get_type() == SHT_SYMTAB || psec->get_type() == SHT_DYNSYM) {
+            symbol_section_accessor symbls(elf_reader, psec);
+
+            size_t sym_num = symbls.get_symbols_num();
+            for (int j=0; j<sym_num; j++) {
+                std::string   name;
+                Elf64_Addr    value   = 0;
+                Elf_Xword     size    = 0;
+                unsigned char bind    = 0;
+                unsigned char type    = 0;
+                Elf_Half      section = 0;
+                unsigned char other   = 0;
+                symbls.get_symbol(j, name, value, size, bind, type, section, other );
+
+                // Only add the symbol if we can actually find it later
+                // i.e. if it has a name
+                if (name.length()) {
+                    symbol_t symb;
+                    symb.address = value;
+                    symb.size = size;
+                    symb.bind = bind;
+                    symb.type = type;
+                    symb.section = section;
+                    symb.other = other;
+                    symb.name = name;
+
+                    symbols[name] = symb;
+                }
+            }
+        }
+    }
+
     return true;
 }
 

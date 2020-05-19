@@ -25,6 +25,17 @@ typedef struct memseg {
     std::vector<memload_t> memload; // Sections part of this segment
 } memseg_t;
 
+typedef struct symbol {
+    std::string name;
+    armaddr_t address;
+    armaddr_t size;
+
+    size_t section;
+    unsigned char bind;
+    unsigned char type;
+    unsigned char other;
+} symbol_t;
+
 class MemLayout {
     private:
         bool good_ = false;
@@ -37,6 +48,7 @@ class MemLayout {
     public:
         ELFIO::elfio elf_reader;
         std::vector<memseg_t> memory;
+        std::map<std::string, symbol_t> symbols;
 
         MemLayout(Config &cfg, std::string elf_file) : cfg_(cfg) {
             elf_file_ = elf_file;
@@ -77,6 +89,14 @@ inline std::ostream& operator<< (std::ostream &out, const MemLayout& ml) {
                 << std::endl;
         }
     }
+
+    out << "Symbols:" << std::endl;
+    for (const auto &symb : ml.symbols) {
+        out << "  " << symb.second.name
+            << " [" << std::hex << symb.second.address << "]"
+            << std::endl;
+    }
+
     return out;
 }
 
