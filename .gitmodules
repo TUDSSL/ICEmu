@@ -10,3 +10,6 @@
 [submodule "lib/boost"]
 	path = lib/boost
 	url = git@github.com:boostorg/boost.git
+[submodule "lib/ELFIO"]
+	path = lib/ELFIO
+	url = git@github.com:serge1/ELFIO.git
