@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 project(ICEmu LANGUAGES CXX)
 
 # Build the libraries
-execute_process(COMMAND bash "-c" ${CMAKE_SOURCE_DIR}/"setup-lib.sh")
+#execute_process(COMMAND bash "-c" ${CMAKE_SOURCE_DIR}/"setup-lib.sh")
 
 #Include Unicorn
 include_directories(${CMAKE_SOURCE_DIR}/lib/unicorn/include)
@@ -18,8 +18,11 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/jsoncpp/include)
 link_directories(${CMAKE_SOURCE_DIR}/lib/jsoncpp/build/lib)
 
 #Include Boost
-include_directories(${CMAKE_SOURCE_DIR}/lib/boost)
+#include_directories(${CMAKE_SOURCE_DIR}/lib/boost)
+#link_directories(${CMAKE_SOURCE_DIR}/lib/boost)
 
+#Include ElfIO
+include_directories(${CMAKE_SOURCE_DIR}/lib/ELFIO)
 
 # ICEmu sources
 add_subdirectory(src)
