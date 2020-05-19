@@ -13,7 +13,28 @@ class Config {
         std::string cfg_file_;
         bool good_ = false;
 
-        bool read();
+        bool read()
+        {
+            std::ifstream ifs(cfg_file_);
+
+            if (ifs.fail()) {
+                std::cerr << "Could not open file: " << cfg_file_ << std::endl;
+                return false;
+            }
+
+            Json::CharReaderBuilder builder;
+            Json::CharReader *reader = builder.newCharReader();
+            std::string errs;
+
+            if (!parseFromStream(builder, ifs, &settings, &errs)) {
+                std::cerr << errs << std::endl;
+                return false;
+            }
+            delete reader;
+
+            return true;
+        }
+
     public:
         Json::Value settings;
 
@@ -32,27 +53,5 @@ class Config {
 
         }
 };
-
-bool Config::read()
-{
-    std::ifstream ifs(cfg_file_);
-
-    if (ifs.fail()) {
-        std::cerr << "Could not open file: " << cfg_file_ << std::endl;
-        return false;
-    }
-
-    Json::CharReaderBuilder builder;
-    Json::CharReader *reader = builder.newCharReader();
-    std::string errs;
-
-    if (!parseFromStream(builder, ifs, &settings, &errs)) {
-        std::cerr << errs << std::endl;
-        return false;
-    }
-    delete reader;
-
-    return true;
-}
 
 #endif /* CONFIG_H_ */

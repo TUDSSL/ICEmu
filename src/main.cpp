@@ -4,6 +4,7 @@
 
 #include "argparse.h"
 #include "config.h"
+#include "memlayout.h"
 
 using namespace std;
 
@@ -26,6 +27,14 @@ int main(int argc, char **argv)
     cfg.settings["elf"] = elf;
 
     cfg.print();
+
+    MemLayout mem(cfg, args.vm["elf-file"].as<string>());
+    if (mem.bad()) {
+        cerr << "Error building memory layout" << endl;
+        return EXIT_FAILURE;
+    }
+
+    cout << mem << endl;
 
     //for (const auto &m : cfg.settings["memory"]) {
     //    cout << m << endl;

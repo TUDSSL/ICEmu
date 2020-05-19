@@ -2,6 +2,7 @@
 add_executable(${PROJECT_NAME}
     "main.cpp"
     "argparse.cpp"
+    "memlayout.cpp"
     )
 
 target_compile_options(${PROJECT_NAME}
