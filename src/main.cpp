@@ -64,7 +64,6 @@ int main(int argc, char **argv) {
     }
 
     for (const auto &m : cfg.setting["memory"]) {
-        cout << m;
+        cout << m << endl;
     }
-    cout << endl;
 }

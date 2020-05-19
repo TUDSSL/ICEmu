@@ -11,6 +11,6 @@ target_compile_options(${PROJECT_NAME}
     )
 
 # Link to libraries
-target_link_libraries(${PROJECT_NAME} pthread m unicorn capstone elf jsoncpp)
+target_link_libraries(${PROJECT_NAME} pthread m unicorn capstone jsoncpp)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})

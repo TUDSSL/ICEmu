@@ -17,6 +17,9 @@ link_directories(${CMAKE_SOURCE_DIR}/lib/capstone)
 include_directories(${CMAKE_SOURCE_DIR}/lib/jsoncpp/include)
 link_directories(${CMAKE_SOURCE_DIR}/lib/jsoncpp/build/lib)
 
+#Include Boost
+include_directories(${CMAKE_SOURCE_DIR}/lib/boost)
+
 
 # ICEmu sources
 add_subdirectory(src)
