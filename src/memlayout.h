@@ -10,20 +10,19 @@
 
 typedef uint32_t armaddr_t;
 
-typedef struct memsec {
-    std::string name;
+typedef struct memload {
     armaddr_t origin;
     armaddr_t length;
 
-    uint8_t *data;
-} memsec_t;
+    uint8_t *data = NULL;
+} memload_t;
 
 typedef struct memseg {
     std::string name;
     armaddr_t origin;
     armaddr_t length;
 
-    std::vector<memsec_t> sections; // Sections part of this segment
+    std::vector<memload_t> memload; // Sections part of this segment
 } memseg_t;
 
 class MemLayout {
@@ -31,6 +30,8 @@ class MemLayout {
         bool good_ = false;
         std::string elf_file_;
         Config &cfg_;
+
+        size_t map_segment_to_memory(armaddr_t *origin, armaddr_t *length);
         bool collect();
 
     public:
@@ -40,6 +41,15 @@ class MemLayout {
         MemLayout(Config &cfg, std::string elf_file) : cfg_(cfg) {
             elf_file_ = elf_file;
             good_ = collect();
+        }
+
+        ~MemLayout() {
+            // Delete the allocate data
+            for (const auto &m : memory) {
+                for (const auto &ml : m.memload) {
+                    delete ml.data;
+                }
+            }
         }
 
         bool good() {return good_;}
@@ -58,13 +68,12 @@ inline std::ostream& operator<< (std::ostream &out, const MemLayout& ml) {
             << " : Origin = 0x" << std::hex << m.origin
             << ", Length = " << std::dec << m.length << std::endl;
 
-        //out << "Sections:" << std::endl;
-        for (const auto &sec : m.sections) {
-            out << "  Section: " << sec.name
+        for (const auto &ld : m.memload) {
+            out << "  Load "
                 << " orig: "
-                << "0x" << std::hex << sec.origin
+                << "0x" << std::hex << ld.origin
                 << " length: "
-                << sec.length
+                << ld.length
                 << std::endl;
         }
     }
