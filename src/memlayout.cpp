@@ -161,7 +161,7 @@ bool MemLayout::collect()
                     symb.other = other;
                     symb.name = name;
 
-                    symbols[name] = symb;
+                    symbols.add(symb);
                 }
             }
         }

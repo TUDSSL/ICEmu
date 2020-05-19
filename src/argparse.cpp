@@ -43,17 +43,17 @@ bool ArgParse::parse(int argc, char **argv)
             return false;
         }
 
-        if (vm.count("config-file"))
-        {
-            cout << "config file: "
-                 << vm["config-file"].as<string>() << "\n";
-        }
+        //if (vm.count("config-file"))
+        //{
+        //    cout << "config file: "
+        //         << vm["config-file"].as<string>() << "\n";
+        //}
 
-        if (vm.count("elf-file"))
-        {
-            cout << "elf file: "
-                 << vm["elf-file"].as<string>() << "\n";
-        }
+        //if (vm.count("elf-file"))
+        //{
+        //    cout << "elf file: "
+        //         << vm["elf-file"].as<string>() << "\n";
+        //}
     }
     catch(std::exception& e)
     {

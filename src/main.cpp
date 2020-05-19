@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     elf["file"] = args.vm["elf-file"].as<string>();
     cfg.settings["elf"] = elf;
 
-    cfg.print();
+    //cfg.print();
 
     MemLayout mem(cfg, args.vm["elf-file"].as<string>());
     if (mem.bad()) {
@@ -36,7 +36,4 @@ int main(int argc, char **argv)
 
     cout << mem << endl;
 
-    //for (const auto &m : cfg.settings["memory"]) {
-    //    cout << m << endl;
-    //}
 }

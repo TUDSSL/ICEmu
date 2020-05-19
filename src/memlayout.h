@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <list>
 
 #include "elfio/elfio.hpp"
 #include "config.h"
@@ -36,6 +37,55 @@ typedef struct symbol {
     unsigned char other;
 } symbol_t;
 
+class Symbols {
+    private:
+        std::map<std::string, symbol_t *> map_name_symbol;
+        std::map<armaddr_t, symbol_t *> map_addr_symbol;
+
+        void build_maps() {
+            // Build the maps if they are not already complete
+            if (symbols.size() > map_name_symbol.size()
+                    || symbols.size() > map_addr_symbol.size()) {
+                for (symbol_t &s : symbols) {
+                    map_name_symbol[s.name] = &s;
+                    map_addr_symbol[s.address] = &s;
+                }
+            }
+        }
+
+    public:
+        std::list<symbol_t> symbols;
+
+        const symbol_t *get(armaddr_t addr) {
+            symbol_t *symb;
+
+            build_maps();
+            try {
+                symb = map_addr_symbol.at(addr);
+            } catch (const std::out_of_range &e) {
+                symb = NULL;
+            }
+            return symb;
+        }
+
+        const symbol_t *get(std::string name) {
+            symbol_t *symb;
+
+            build_maps();
+            try {
+                symb = map_name_symbol.at(name);
+            } catch (const std::out_of_range &e) {
+                symb = NULL;
+            }
+            return symb;
+        }
+
+        inline void add(symbol_t symbol) {
+            symbols.push_back(symbol);
+        }
+
+};
+
 class MemLayout {
     private:
         bool good_ = false;
@@ -48,7 +98,7 @@ class MemLayout {
     public:
         ELFIO::elfio elf_reader;
         std::vector<memseg_t> memory;
-        std::map<std::string, symbol_t> symbols;
+        Symbols symbols;
 
         MemLayout(Config &cfg, std::string elf_file) : cfg_(cfg) {
             elf_file_ = elf_file;
@@ -76,12 +126,12 @@ inline std::ostream& operator<< (std::ostream &out, const MemLayout& ml) {
     out << "Segments:" << std::endl;
 
     for (const auto &m : ml.memory) {
-        out << "Name = " << m.name
+        out << "  Name = " << m.name
             << " : Origin = 0x" << std::hex << m.origin
             << ", Length = " << std::dec << m.length << std::endl;
 
         for (const auto &ld : m.memload) {
-            out << "  Load "
+            out << "    Load "
                 << " orig: "
                 << "0x" << std::hex << ld.origin
                 << " length: "
@@ -91,9 +141,9 @@ inline std::ostream& operator<< (std::ostream &out, const MemLayout& ml) {
     }
 
     out << "Symbols:" << std::endl;
-    for (const auto &symb : ml.symbols) {
-        out << "  " << symb.second.name
-            << " [" << std::hex << symb.second.address << "]"
+    for (const auto &symb : ml.symbols.symbols) {
+        out << "  " << symb.name
+            << " [" << std::hex << symb.address << "]"
             << std::endl;
     }
 
