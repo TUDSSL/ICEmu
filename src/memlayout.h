@@ -134,6 +134,8 @@ inline std::ostream& operator<< (std::ostream &out, const MemLayout& ml) {
     out << "Elf file: " << ml.elf_file_ << std::endl;
     out << "Segments:" << std::endl;
 
+    std::ios_base::fmtflags f(out.flags());
+
     for (const auto &m : ml.memory) {
         out << "  Name = " << m.name
             << " : Origin = 0x" << std::hex << m.origin
@@ -155,6 +157,9 @@ inline std::ostream& operator<< (std::ostream &out, const MemLayout& ml) {
             << " [" << std::hex << symb.address << "]"
             << std::endl;
     }
+
+
+    out.flags(f);
 
     return out;
 }
