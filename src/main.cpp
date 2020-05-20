@@ -7,6 +7,7 @@
 #include "config.h"
 #include "memlayout.h"
 #include "memdump.h"
+#include "emulator.h"
 
 #include "elapsedtime.h"
 
@@ -46,9 +47,12 @@ int main(int argc, char **argv)
     // Stop the time measurement
     runtime.stop();
     auto s = runtime.get_s();
-    cout << "Emulation time: " << s << " s" << endl;
+    cout << "Emulation time: " << s << "s" << endl;
 
     /* Post emulation */
+    Emulator emu(cfg, mem);
+    emu.init();
+    emu.run();
 
     // Dump the memory if required
     if (args.vm.count("dump-bin")) {

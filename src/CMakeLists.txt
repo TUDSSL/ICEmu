@@ -4,6 +4,7 @@ add_executable(${PROJECT_NAME}
     "argparse.cpp"
     "memlayout.cpp"
     "memdump.cpp"
+    "emulator.cpp"
     )
 
 target_compile_options(${PROJECT_NAME}

@@ -7,9 +7,9 @@
 #include <list>
 
 #include "elfio/elfio.hpp"
+#include "symbols.h"
 #include "config.h"
 
-typedef uint32_t armaddr_t;
 
 typedef struct memload {
     armaddr_t origin;
@@ -27,66 +27,6 @@ typedef struct memseg {
 
     uint8_t *data = NULL; // the content (allocated) for this segment
 } memseg_t;
-
-typedef struct symbol {
-    std::string name;
-    armaddr_t address;
-    armaddr_t size;
-
-    size_t section;
-    unsigned char bind;
-    unsigned char type;
-    unsigned char other;
-} symbol_t;
-
-class Symbols {
-    private:
-        std::map<std::string, symbol_t *> map_name_symbol;
-        std::map<armaddr_t, symbol_t *> map_addr_symbol;
-
-        void build_maps() {
-            // Build the maps if they are not already complete
-            if (symbols.size() > map_name_symbol.size()
-                    || symbols.size() > map_addr_symbol.size()) {
-                for (symbol_t &s : symbols) {
-                    map_name_symbol[s.name] = &s;
-                    map_addr_symbol[s.address] = &s;
-                }
-            }
-        }
-
-    public:
-        std::list<symbol_t> symbols;
-
-        const symbol_t *get(armaddr_t addr) {
-            symbol_t *symb;
-
-            build_maps();
-            try {
-                symb = map_addr_symbol.at(addr);
-            } catch (const std::out_of_range &e) {
-                symb = NULL;
-            }
-            return symb;
-        }
-
-        const symbol_t *get(std::string name) {
-            symbol_t *symb;
-
-            build_maps();
-            try {
-                symb = map_name_symbol.at(name);
-            } catch (const std::out_of_range &e) {
-                symb = NULL;
-            }
-            return symb;
-        }
-
-        inline void add(symbol_t symbol) {
-            symbols.push_back(symbol);
-        }
-
-};
 
 class MemLayout {
     private:
@@ -153,13 +93,8 @@ inline std::ostream& operator<< (std::ostream &out, const MemLayout& ml) {
         }
     }
 
-    out << "Symbols:" << std::endl;
-    for (const auto &symb : ml.symbols.symbols) {
-        out << "  " << symb.name
-            << " [" << std::hex << symb.address << "]"
-            << std::endl;
-    }
-
+    //out << "Symbols:" << std::endl;
+    //out << ml.symbols;
 
     out.flags(f);
 
