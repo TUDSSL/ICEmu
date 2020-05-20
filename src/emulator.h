@@ -11,8 +11,6 @@
 #include <capstone.h>
 
 class RegisterStatus {
-    uc_engine *uc_ = NULL;
-
     public:
         enum reg{
             R0  = UC_ARM_REG_R0,  R1  = UC_ARM_REG_R1,  R2  = UC_ARM_REG_R2,  R3  = UC_ARM_REG_R3,
@@ -23,13 +21,17 @@ class RegisterStatus {
             RETURN = R0,
         };
 
-        std::array<enum reg, 16> regmap= {
+    private:
+        uc_engine *uc_ = NULL;
+
+        const std::array<enum reg, 16> regmap= {
             R0,  R1,  R2,  R3,
             R4,  R5,  R6,  R7,
             R8,  R9,  R10, R11,
             R12, R13, R14, R15
         };
 
+    public:
         inline void init(uc_engine *uc) {
             uc_ = uc;
         }
