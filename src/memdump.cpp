@@ -7,6 +7,7 @@
 
 using namespace std;
 
+// https://gist.github.com/shreyasbharath/32a8092666303a916e24a81b18af146b
 void HexDump(const uint8_t *bytes, size_t size, std::ostream& stream)
 {
     char buff[17];
