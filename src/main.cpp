@@ -53,9 +53,9 @@ int main(int argc, char **argv)
     runtime.stop();
 
     cout << "Emulation ended" << endl;
-    cout << "Result register: " << emu.status.registers.get(RegisterStatus::RETURN) << endl;
+    cout << "Result register: " << emu.registers.get(Registers::RETURN) << endl;
     //cout << "Registers:" << endl;
-    //emu.status.registers.dump();
+    //emu.registers.dump();
 
     // Get the runtime of the emulation
     auto s = runtime.get_s();
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
         cout << "Dumping Registers to file: " << filename << endl;
         ofstream outfile;
         outfile.open(filename, ios::out | ios::trunc);
-        emu.status.registers.dump(outfile);
+        emu.registers.dump(outfile);
         outfile.close();
     }
 
