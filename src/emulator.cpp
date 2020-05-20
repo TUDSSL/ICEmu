@@ -48,9 +48,9 @@ bool Emulator::run()
             << err << " (" << uc_strerror(err) << ")" << endl;
     }
 
-    uint32_t reg_val_r0; \
-    uc_reg_read(uc, UC_ARM_REG_R0, &reg_val_r0);
-    cout << "R0: " << reg_val_r0 << endl;
+    //uint32_t reg_val_r0; \
+    //uc_reg_read(uc, UC_ARM_REG_R0, &reg_val_r0);
+    //cout << "R0: " << reg_val_r0 << endl;
 
     return true;
 }

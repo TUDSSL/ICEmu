@@ -29,8 +29,8 @@ bool ArgParse::parse(int argc, char **argv)
             ("elf-file,e", po::value<string>(), "elf input file")
             ("dump-hex,h", "dump hex file of the memory regions at completion")
             ("dump-bin,b", "dump bin file of the memory regions at completion")
+            ("dump-reg,r", "dump file with the register values at completion")
             ("dump-prefix", po::value<string>()->default_value("dump-"), "dump file prefix")
-
         ;
 
         po::positional_options_description p;
@@ -39,13 +39,14 @@ bool ArgParse::parse(int argc, char **argv)
 
         po::store(po::command_line_parser(argc, argv).
                   options(desc).positional(p).run(), vm);
-        po::notify(vm);
 
         if (vm.count("help")) {
             cout << "Usage: options_description [options]\n";
             cout << desc;
             return false;
         }
+
+        po::notify(vm);
 
         //if (vm.count("config-file"))
         //{

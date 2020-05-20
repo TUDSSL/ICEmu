@@ -53,10 +53,23 @@ int main(int argc, char **argv)
     runtime.stop();
 
     cout << "Emulation ended" << endl;
+    cout << "Result register: " << emu.status.registers.get(RegisterStatus::RETURN) << endl;
+    //cout << "Registers:" << endl;
+    //emu.status.registers.dump();
 
     // Get the runtime of the emulation
     auto s = runtime.get_s();
     cout << "Emulation time: " << s << "s" << endl;
+
+    // Dump the registers if required
+    if (args.vm.count("dump-reg")) {
+        string filename = args.vm["dump-prefix"].as<string>() + "reg.txt";
+        cout << "Dumping Registers to file: " << filename << endl;
+        ofstream outfile;
+        outfile.open(filename, ios::out | ios::trunc);
+        emu.status.registers.dump(outfile);
+        outfile.close();
+    }
 
     // Dump the memory if required
     if (args.vm.count("dump-bin")) {
