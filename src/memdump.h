@@ -11,7 +11,6 @@ namespace MemDump {
     };
 
     bool dump(MemLayout &ml, std::string prefix = "", enum dump_type dt = HEX);
-
 };
 
 #endif /* MEMDUMP_H_ */

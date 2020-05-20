@@ -92,6 +92,9 @@ bool MemLayout::collect()
         return false;
     }
 
+    /* Get the entry point */
+    entrypoint = elf_reader.get_entry();
+
     size_t seg_num = elf_reader.segments.size();
     for (int i=0; i<seg_num; i++) {
         const segment *pseg = elf_reader.segments[i];

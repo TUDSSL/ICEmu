@@ -102,6 +102,7 @@ class MemLayout {
         ELFIO::elfio elf_reader;
         std::vector<memseg_t> memory;
         Symbols symbols;
+        armaddr_t entrypoint = 0;
 
         MemLayout(Config &cfg, std::string elf_file) : cfg_(cfg) {
             elf_file_ = elf_file;
@@ -131,10 +132,11 @@ class MemLayout {
 
 // Printing
 inline std::ostream& operator<< (std::ostream &out, const MemLayout& ml) {
-    out << "Elf file: " << ml.elf_file_ << std::endl;
-    out << "Segments:" << std::endl;
-
     std::ios_base::fmtflags f(out.flags());
+
+    out << "Elf file: " << ml.elf_file_ << std::endl;
+    out << "Entrypoint: 0x" << std::hex << ml.entrypoint << std::endl;
+    out << "Segments:" << std::endl;
 
     for (const auto &m : ml.memory) {
         out << "  Name = " << m.name
