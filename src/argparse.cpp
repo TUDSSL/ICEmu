@@ -27,6 +27,10 @@ bool ArgParse::parse(int argc, char **argv)
             ("help", "produce help message")
             ("config-file,c", po::value<string>()->required(), "json config file")
             ("elf-file,e", po::value<string>(), "elf input file")
+            ("dump-hex,h", "dump hex file of the memory regions at completion")
+            ("dump-bin,b", "dump bin file of the memory regions at completion")
+            ("dump-prefix", po::value<string>()->default_value("dump-"), "dump file prefix")
+
         ;
 
         po::positional_options_description p;

@@ -166,7 +166,32 @@ bool MemLayout::collect()
             }
         }
     }
-
     return true;
 }
 
+bool MemLayout::allocate()
+{
+    try {
+        for (auto &m : memory) {
+            if (m.data != NULL) {
+                cerr << "Memory segment already allocated" << endl;
+                return false;
+            }
+            m.data = new uint8_t[m.length];
+        }
+    } catch (const std::bad_alloc &) {
+        return false;
+    }
+    return true;
+}
+
+void MemLayout::populate()
+{
+    for (auto &m : memory) {
+        uint8_t *data = m.data;
+        for (const auto &ml : m.memload) {
+            size_t start_wr = ml.origin - m.origin;
+            memcpy(&data[start_wr], ml.data, ml.length);
+        }
+    }
+}

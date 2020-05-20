@@ -5,6 +5,10 @@
 #include "argparse.h"
 #include "config.h"
 #include "memlayout.h"
+#include "memdump.h"
+
+#include <boost/interprocess/file_mapping.hpp>
+#include <boost/interprocess/mapped_region.hpp>
 
 using namespace std;
 
@@ -22,12 +26,6 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    Setting::Value elf;
-    elf["file"] = args.vm["elf-file"].as<string>();
-    cfg.settings["elf"] = elf;
-
-    //cfg.print();
-
     MemLayout mem(cfg, args.vm["elf-file"].as<string>());
     if (mem.bad()) {
         cerr << "Error building memory layout" << endl;
@@ -36,4 +34,19 @@ int main(int argc, char **argv)
 
     cout << mem << endl;
 
+    // Populate the allocated memory
+    // i.e. load the flash to the allocated segment
+    mem.populate();
+
+    // TODO Actual emulation xD
+
+    // Dump the memory if required
+    if (args.vm.count("dump-bin")) {
+        string dump_prefix = args.vm["dump-prefix"].as<string>();
+        MemDump::dump(mem, dump_prefix, MemDump::BIN);
+    }
+    if (args.vm.count("dump-hex")) {
+        string dump_prefix = args.vm["dump-prefix"].as<string>();
+        MemDump::dump(mem, dump_prefix, MemDump::HEX);
+    }
 }

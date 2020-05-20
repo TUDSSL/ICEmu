@@ -24,6 +24,8 @@ typedef struct memseg {
     armaddr_t length;
 
     std::vector<memload_t> memload; // Sections part of this segment
+
+    uint8_t *data = NULL; // the content (allocated) for this segment
 } memseg_t;
 
 typedef struct symbol {
@@ -94,6 +96,7 @@ class MemLayout {
 
         size_t map_segment_to_memory(armaddr_t *origin, armaddr_t *length);
         bool collect();
+        bool allocate();
 
     public:
         ELFIO::elfio elf_reader;
@@ -103,16 +106,22 @@ class MemLayout {
         MemLayout(Config &cfg, std::string elf_file) : cfg_(cfg) {
             elf_file_ = elf_file;
             good_ = collect();
+            if (good_) {
+                good_ = allocate();
+            }
         }
 
         ~MemLayout() {
             // Delete the allocate data
             for (const auto &m : memory) {
+                delete m.data;
                 for (const auto &ml : m.memload) {
                     delete ml.data;
                 }
             }
         }
+
+        void populate();
 
         bool good() {return good_;}
         bool bad() {return !good_;}
