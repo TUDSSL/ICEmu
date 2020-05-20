@@ -172,6 +172,13 @@ bool MemLayout::collect()
     return true;
 }
 
+static inline size_t align_1024(size_t length)
+{
+    const size_t align = 1024;
+    size_t res = ((length + align-1) / align) * align;
+    return res;
+}
+
 bool MemLayout::allocate()
 {
     try {
@@ -180,7 +187,10 @@ bool MemLayout::allocate()
                 cerr << "Memory segment already allocated" << endl;
                 return false;
             }
-            m.data = new uint8_t[m.length];
+            // For the emulator (unicorn) we need allocated memory chunks
+            // to be a multiple of 1024
+            m.allocated_length = align_1024((size_t)m.length);
+            m.data = new uint8_t[m.allocated_length];
         }
     } catch (const std::bad_alloc &) {
         return false;

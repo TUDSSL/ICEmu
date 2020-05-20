@@ -35,24 +35,28 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    runtime.start();
     cout << mem << endl;
 
     // Populate the allocated memory
     // i.e. load the flash to the allocated segment
     mem.populate();
 
-    // TODO Actual emulation xD
+    /* Run emulation */
+    Emulator emu(cfg, mem);
+    emu.init();
+
+    cout << "Starting emulation" << endl;
+    runtime.start(); // Start tracking the runtime
+    emu.run();
 
     // Stop the time measurement
     runtime.stop();
+
+    cout << "Emulation ended" << endl;
+
+    // Get the runtime of the emulation
     auto s = runtime.get_s();
     cout << "Emulation time: " << s << "s" << endl;
-
-    /* Post emulation */
-    Emulator emu(cfg, mem);
-    emu.init();
-    emu.run();
 
     // Dump the memory if required
     if (args.vm.count("dump-bin")) {

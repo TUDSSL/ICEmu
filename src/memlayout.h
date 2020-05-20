@@ -25,6 +25,7 @@ typedef struct memseg {
 
     std::vector<memload_t> memload; // Sections part of this segment
 
+    size_t allocated_length;
     uint8_t *data = NULL; // the content (allocated) for this segment
 } memseg_t;
 
