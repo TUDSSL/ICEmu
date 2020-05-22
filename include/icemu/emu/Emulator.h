@@ -1,12 +1,12 @@
-#ifndef EMULATOR_H_
-#define EMULATOR_H_
+#ifndef ICEMU_EMU_EMULATOR_H_
+#define ICEMU_EMU_EMULATOR_H_
 
 #include <iomanip>
 #include <iostream>
 
-#include "config.h"
-#include "memlayout.h"
-#include "registers.h"
+#include "icemu/Config.h"
+#include "icemu/emu/Memory.h"
+#include "icemu/emu/Registers.h"
 
 #include <unicorn/unicorn.h>
 #include <capstone.h>
@@ -15,7 +15,7 @@
 class Emulator {
     private:
         Config &cfg_;
-        MemLayout &mem_;
+        Memory &mem_;
 
         /* Unicorn */
         uc_engine *uc = NULL;
@@ -27,7 +27,7 @@ class Emulator {
     public:
         Registers registers;
 
-        Emulator(Config &cfg, MemLayout &mem) : cfg_(cfg), mem_(mem) {
+        Emulator(Config &cfg, Memory &mem) : cfg_(cfg), mem_(mem) {
             /* Open the unicorn emulator engine */
             uc_err err = uc_open(UC_ARCH_ARM, (uc_mode)(UC_MODE_THUMB | UC_MODE_MCLASS), &uc);
             if (err) {
@@ -58,4 +58,4 @@ class Emulator {
         bool bad() {return !good_;}
 };
 
-#endif /* EMULATOR_H_ */
+#endif /* ICEMU_EMU_EMULATOR_H_ */

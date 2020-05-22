@@ -5,7 +5,8 @@
 
 #include "elfio/elfio.hpp"
 
-#include "memlayout.h"
+#include "icemu/emu/types.h"
+#include "icemu/emu/Memory.h"
 
 using namespace ELFIO;
 using namespace std;
@@ -34,15 +35,13 @@ static armaddr_t length_string_to_numb(string len_str)
     return len;
 }
 
-size_t MemLayout::map_segment_to_memory(armaddr_t *origin, armaddr_t *length)
+size_t Memory::map_segment_to_memory(armaddr_t *origin, armaddr_t *length)
 {
     armaddr_t low, high;
-    bool has_changed = 0;
-
     low = *origin;
     high = *origin + *length;
 
-    int i;
+    size_t i;
     for (i=0; i<memory.size(); i++) {
 
         auto &m = memory.at(i);
@@ -50,7 +49,7 @@ size_t MemLayout::map_segment_to_memory(armaddr_t *origin, armaddr_t *length)
         armaddr_t m_low = m.origin;
         armaddr_t m_high = m.origin+m.length;
 
-        if ((low >= m_low && low <= m_high) || high >= m_low && high <= m_high) {
+        if (((low >= m_low) && (low <= m_high)) || ((high >= m_low) && (high <= m_high))) {
             // One of the points is in the memory range.
             // Cut off stuff thats outside
             if (low < m_low) {
@@ -74,7 +73,7 @@ size_t MemLayout::map_segment_to_memory(armaddr_t *origin, armaddr_t *length)
  * and the config
  * TODO: Add error handling for the JSON reader??
  */
-bool MemLayout::collect()
+bool Memory::collect()
 {
     /* Get the memory sections from the config */
     for (const auto &m : cfg_.settings["memory"]) {
@@ -96,7 +95,7 @@ bool MemLayout::collect()
     entrypoint = elf_reader.get_entry();
 
     size_t seg_num = elf_reader.segments.size();
-    for (int i=0; i<seg_num; i++) {
+    for (size_t i=0; i<seg_num; i++) {
         const segment *pseg = elf_reader.segments[i];
 
         armaddr_t seg_origin = pseg->get_physical_address();
@@ -136,13 +135,13 @@ bool MemLayout::collect()
 
     // Build a map for the symbols (aka the symbol table)
     size_t sec_num = elf_reader.sections.size();
-    for (int i=0; i<sec_num; i++) {
+    for (size_t i=0; i<sec_num; i++) {
         section *psec = elf_reader.sections[i];
         if (psec->get_type() == SHT_SYMTAB || psec->get_type() == SHT_DYNSYM) {
             symbol_section_accessor symbls(elf_reader, psec);
 
             size_t sym_num = symbls.get_symbols_num();
-            for (int j=0; j<sym_num; j++) {
+            for (size_t j=0; j<sym_num; j++) {
                 std::string   name;
                 Elf64_Addr    value   = 0;
                 Elf_Xword     size    = 0;
@@ -179,7 +178,7 @@ static inline size_t align_1024(size_t length)
     return res;
 }
 
-bool MemLayout::allocate()
+bool Memory::allocate()
 {
     try {
         for (auto &m : memory) {
@@ -198,7 +197,7 @@ bool MemLayout::allocate()
     return true;
 }
 
-void MemLayout::populate()
+void Memory::populate()
 {
     for (auto &m : memory) {
         uint8_t *data = m.data;

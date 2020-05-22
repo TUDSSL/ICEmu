@@ -1,5 +1,5 @@
-#ifndef CONFIG_H_
-#define CONFIG_H_
+#ifndef ICEMU_CONFIG_H_
+#define ICEMU_CONFIG_H_
 
 #include <fstream>
 #include <iostream>
@@ -54,4 +54,4 @@ class Config {
         }
 };
 
-#endif /* CONFIG_H_ */
+#endif /* ICEMU_CONFIG_H_ */

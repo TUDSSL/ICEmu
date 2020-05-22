@@ -21,4 +21,4 @@ link_directories(${CMAKE_SOURCE_DIR}/lib/jsoncpp/build/lib)
 include_directories(${CMAKE_SOURCE_DIR}/lib/ELFIO)
 
 # ICEmu sources
-add_subdirectory(src)
+add_subdirectory(src/icemu)

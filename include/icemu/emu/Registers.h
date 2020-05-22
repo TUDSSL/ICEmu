@@ -1,10 +1,11 @@
-#ifndef REGISTERS_H_
-#define REGISTERS_H_
+#ifndef ICEMU_EMU_REGISTERS_H_
+#define ICEMU_EMU_REGISTERS_H_
 
 #include <iomanip>
 #include <iostream>
 
 #include <unicorn/unicorn.h>
+#include "icemu/emu/types.h"
 
 class Registers {
     public:
@@ -54,7 +55,7 @@ class Registers {
             std::ios_base::fmtflags fm(out.flags());
             const size_t w = 8;
 
-            for (int i=0; i<regmap.size(); i++) {
+            for (size_t i=0; i<regmap.size(); i++) {
                 armaddr_t r;
                 r = get(i);
                 out << "R" << i << ((i<10) ? " " : "")
@@ -67,4 +68,4 @@ class Registers {
         }
 };
 
-#endif /* REGISTERS_H_ */
+#endif /* ICEMU_EMU_REGISTERS_H_ */

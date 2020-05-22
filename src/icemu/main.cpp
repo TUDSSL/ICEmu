@@ -3,13 +3,13 @@
 #include <iostream>
 #include <chrono>
 
-#include "argparse.h"
-#include "config.h"
-#include "memlayout.h"
-#include "memdump.h"
-#include "emulator.h"
+#include "icemu/ArgParse.h"
+#include "icemu/Config.h"
+#include "icemu/MemoryDump.h"
+#include "icemu/emu/Memory.h"
+#include "icemu/emu/Emulator.h"
 
-#include "elapsedtime.h"
+#include "icemu/util/ElapsedTime.h"
 
 using namespace std;
 
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    MemLayout mem(cfg, args.vm["elf-file"].as<string>());
+    Memory mem(cfg, args.vm["elf-file"].as<string>());
     if (mem.bad()) {
         cerr << "Error building memory layout" << endl;
         return EXIT_FAILURE;
@@ -74,10 +74,10 @@ int main(int argc, char **argv)
     // Dump the memory if required
     if (args.vm.count("dump-bin")) {
         string dump_prefix = args.vm["dump-prefix"].as<string>();
-        MemDump::dump(mem, dump_prefix, MemDump::BIN);
+        MemoryDump::dump(mem, dump_prefix, MemoryDump::BIN);
     }
     if (args.vm.count("dump-hex")) {
         string dump_prefix = args.vm["dump-prefix"].as<string>();
-        MemDump::dump(mem, dump_prefix, MemDump::HEX);
+        MemoryDump::dump(mem, dump_prefix, MemoryDump::HEX);
     }
 }

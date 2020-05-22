@@ -1,7 +1,7 @@
 #include <iostream>
 #include "boost/program_options.hpp"
 
-#include "argparse.h"
+#include "icemu/ArgParse.h"
 
 //
 // Example from boost/lib/program_options/example/options_description.cpp

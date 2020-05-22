@@ -1,5 +1,5 @@
-#ifndef ARGPARSE_H_
-#define ARGPARSE_H_
+#ifndef ICEMU_ARGPARSE_H_
+#define ICEMU_ARGPARSE_H_
 
 #include "boost/program_options.hpp"
 
@@ -19,4 +19,4 @@ class ArgParse {
         bool bad() {return !good_;}
 };
 
-#endif /* ARGPARSE_H_ */
+#endif /* ICEMU_ARGPARSE_H_ */

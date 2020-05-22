@@ -1,5 +1,5 @@
-#ifndef MEMLAYOUT_H_
-#define MEMLAYOUT_H_
+#ifndef ICEMU_EMU_MEMORY_H_
+#define ICEMU_EMU_MEMORY_H_
 
 #include <cstdint>
 #include <string>
@@ -7,8 +7,9 @@
 #include <list>
 
 #include "elfio/elfio.hpp"
-#include "symbols.h"
-#include "config.h"
+
+#include "icemu/Config.h"
+#include "icemu/emu/Symbols.h"
 
 
 typedef struct memload {
@@ -29,7 +30,7 @@ typedef struct memseg {
     uint8_t *data = NULL; // the content (allocated) for this segment
 } memseg_t;
 
-class MemLayout {
+class Memory {
     private:
         bool good_ = false;
         std::string elf_file_;
@@ -45,7 +46,7 @@ class MemLayout {
         Symbols symbols;
         armaddr_t entrypoint = 0;
 
-        MemLayout(Config &cfg, std::string elf_file) : cfg_(cfg) {
+        Memory(Config &cfg, std::string elf_file) : cfg_(cfg) {
             elf_file_ = elf_file;
             good_ = collect();
             if (good_) {
@@ -53,7 +54,7 @@ class MemLayout {
             }
         }
 
-        ~MemLayout() {
+        ~Memory() {
             // Delete the allocate data
             for (const auto &m : memory) {
                 delete m.data;
@@ -68,11 +69,11 @@ class MemLayout {
         bool good() {return good_;}
         bool bad() {return !good_;}
 
-        friend std::ostream& operator<< (std::ostream &out, const MemLayout& ml);
+        friend std::ostream& operator<< (std::ostream &out, const Memory& ml);
 };
 
 // Printing
-inline std::ostream& operator<< (std::ostream &out, const MemLayout& ml) {
+inline std::ostream& operator<< (std::ostream &out, const Memory& ml) {
     std::ios_base::fmtflags f(out.flags());
 
     out << "Elf file: " << ml.elf_file_ << std::endl;
@@ -102,4 +103,4 @@ inline std::ostream& operator<< (std::ostream &out, const MemLayout& ml) {
     return out;
 }
 
-#endif /* MEMLAYOUT_H_ */
+#endif /* ICEMU_EMU_MEMORY_H_ */

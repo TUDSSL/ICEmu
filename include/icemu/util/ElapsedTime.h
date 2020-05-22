@@ -1,5 +1,5 @@
-#ifndef ELAPSED_TIME_H_
-#define ELAPSED_TIME_H_
+#ifndef ICEMU_UTIL_ELAPSED_TIME_H_
+#define ICEMU_UTIL_ELAPSED_TIME_H_
 
 #include <chrono>
 
@@ -37,4 +37,4 @@ class ElapsedTime {
         }
 };
 
-#endif /* ELAPSED_TIME_H_ */
+#endif /* ICEMU_UTIL_ELAPSED_TIME_H_ */

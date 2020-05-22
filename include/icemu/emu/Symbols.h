@@ -1,12 +1,12 @@
-#ifndef SYMBOLS_H_
-#define SYMBOLS_H_
+#ifndef ICEMU_EMU_SYMBOLS_H_
+#define ICEMU_EMU_SYMBOLS_H_
 
 #include <cstdint>
 #include <map>
 #include <iomanip>
 #include <iostream>
 
-typedef uint32_t armaddr_t;
+#include "icemu/emu/types.h"
 
 typedef struct symbol {
     std::string name;
@@ -82,4 +82,4 @@ inline std::ostream& operator<< (std::ostream &out, const Symbols& s) {
 }
 
 
-#endif /* SYMBOLS_H_ */
+#endif /* ICEMU_EMU_SYMBOLS_H_ */

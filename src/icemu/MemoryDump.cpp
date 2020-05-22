@@ -2,8 +2,8 @@
 #include <fstream>
 #include <iostream>
 
-#include "memlayout.h"
-#include "memdump.h"
+#include "icemu/emu/Memory.h"
+#include "icemu/MemoryDump.h"
 
 using namespace std;
 
@@ -66,9 +66,9 @@ static string dump_filename(const memseg_t &m, string &prefix, string dt_str)
     return filename;
 }
 
-bool MemDump::dump(MemLayout &ml, string prefix, enum dump_type dt)
+bool MemoryDump::dump(Memory &mem, string prefix, enum dump_type dt)
 {
-    for (const auto &m : ml.memory) {
+    for (const auto &m : mem.memory) {
         switch (dt) {
             case HEX: {
                     string filename = dump_filename(m, prefix, "-hex.txt");

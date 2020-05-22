@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "memlayout.h"
-#include "emulator.h"
+#include "icemu/emu/Memory.h"
+#include "icemu/emu/Emulator.h"
 
 #include <unicorn/unicorn.h>
 #include <capstone.h>
@@ -19,7 +19,7 @@ bool Emulator::init()
     // Map all the memory
     for (const auto &m : mem_.memory) {
         // Unicorn requires the the lenght to be a multiple of 1024
-        // This is done in the MemLayout class and set to allocated_length
+        // This is done in the Memory class and set to allocated_length
         err = uc_mem_map_ptr(uc, m.origin, m.allocated_length, UC_PROT_ALL, m.data);
         if (err) {
             cerr << "Error mapping memory: " << m.name
