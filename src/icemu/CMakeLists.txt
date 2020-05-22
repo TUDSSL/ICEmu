@@ -20,7 +20,12 @@ target_compile_options(${PROJECT_NAME}
     -ggdb
     -O0
     -std=c++11
-    #-fsanitize=address -fsanitize=undefined # Find memory related bugs, makes it way slower
+    -fsanitize=address -fsanitize=undefined # Find memory related bugs, makes it way slower
+    )
+
+target_link_options(${PROJECT_NAME}
+    PUBLIC
+    -fsanitize=address -fsanitize=undefined # Find memory related bugs, makes it way slower
     )
 
 # Link to libraries
@@ -30,6 +35,10 @@ target_link_libraries(${PROJECT_NAME}
     unicorn
     capstone
     jsoncpp
-    boost_program_options)
+    boost_program_options
+    dl
+    boost_system
+    boost_filesystem
+    )
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
