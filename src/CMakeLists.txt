@@ -10,6 +10,7 @@ add_executable(${PROJECT_NAME}
 target_compile_options(${PROJECT_NAME}
     PUBLIC
     -g
+    -ggdb
     -O0
     -std=c++11
     )
