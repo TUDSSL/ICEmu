@@ -2,7 +2,7 @@
 #define HOOKS_HOOKS_H_
 
 #include "icemu/types.h"
-#include "hook.h"
+#include "Hook.h"
 
 #include <set>
 #include <boost/icl/interval_map.hpp>

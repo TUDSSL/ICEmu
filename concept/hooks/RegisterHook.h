@@ -1,7 +1,7 @@
 #ifndef HOOKS_REGISTERHOOK_H_
 #define HOOKS_REGISTERHOOK_H_
 
-#include "hookmanager.h"
+#include "HookManager.h"
 
 class RegisterHook {
     public:

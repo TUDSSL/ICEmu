@@ -3,10 +3,10 @@
 
 #include "icemu/types.h"
 
-#include "hook.h"
-#include "hookcode.h"
-#include "hookmemory.h"
-#include "hooks.h"
+#include "Hook.h"
+#include "HookCode.h"
+#include "HookMemory.h"
+#include "Hooks.h"
 
 class HookManager {
     private:

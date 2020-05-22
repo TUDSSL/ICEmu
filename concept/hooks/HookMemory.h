@@ -2,7 +2,7 @@
 #define HOOKS_HOOKMEMORY_H_
 
 #include "icemu/types.h"
-#include "hook.h"
+#include "Hook.h"
 
 class HookMemory : public Hook {
     using Hook::Hook; // Inherit constructor

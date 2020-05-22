@@ -1,8 +1,8 @@
 #include <iostream>
 
-#include "hooks/hookcode.h"
-#include "hooks/hookmanager.h"
-#include "hooks/registerhook.h"
+#include "hooks/HookCode.h"
+#include "hooks/HookManager.h"
+#include "hooks/RegisterHook.h"
 
 using namespace std;
 

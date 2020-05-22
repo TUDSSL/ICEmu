@@ -1,7 +1,7 @@
 #ifndef HOOKS_HOOKCODE_H_
 #define HOOKS_HOOKCODE_H_
 
-#include "hook.h"
+#include "Hook.h"
 
 class HookCode : public Hook {
     using Hook::Hook; // Inherit constructor
