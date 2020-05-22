@@ -4,7 +4,7 @@
 #include <set>
 #include <boost/icl/interval_map.hpp>
 
-#include "icemu/types.h"
+#include "icemu/emu/types.h"
 #include "icemu/hooks/Hook.h"
 
 template <class C>

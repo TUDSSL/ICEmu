@@ -1,7 +1,9 @@
 #ifndef ICEMU_HOOKS_HOOKMEMORY_H_
 #define ICEMU_HOOKS_HOOKMEMORY_H_
 
-#include "icemu/types.h"
+#include <iostream> // TODO: remove when making pure virtual
+
+#include "icemu/emu/types.h"
 #include "icemu/hooks/Hook.h"
 
 class HookMemory : public Hook {

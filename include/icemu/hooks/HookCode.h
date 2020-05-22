@@ -1,6 +1,9 @@
 #ifndef ICEMU_HOOKS_HOOKCODE_H_
 #define ICEMU_HOOKS_HOOKCODE_H_
 
+#include <iostream> // TODO: remove when making pure virtual
+
+#include "icemu/emu/types.h"
 #include "icemu/hooks/Hook.h"
 
 class HookCode : public Hook {

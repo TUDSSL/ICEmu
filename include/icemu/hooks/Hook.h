@@ -1,7 +1,9 @@
 #ifndef ICEMU_HOOKS_HOOK_H_
 #define ICEMU_HOOKS_HOOK_H_
 
-#include "icemu/types.h"
+#include <string>
+
+#include "icemu/emu/types.h"
 
 // Base class
 class Hook {

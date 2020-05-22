@@ -1,7 +1,7 @@
 #ifndef ICEMU_HOOKS_HOOKMANAGER_H_
 #define ICEMU_HOOKS_HOOKMANAGER_H_
 
-#include "icemu/types.h"
+#include "icemu/emu/types.h"
 #include "icemu/hooks/Hook.h"
 #include "icemu/hooks/HookCode.h"
 #include "icemu/hooks/HookMemory.h"
