@@ -6,6 +6,7 @@ build/
 [._]*.sw[a-p]
 [._]s[a-v][a-z]
 [._]sw[a-p]
+.syntastic_config
 .vimrc
 .tmp
 .bak
