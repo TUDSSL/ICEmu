@@ -1,6 +1,17 @@
 # CMake build directories
 build/
 
+# Editor related files
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-v][a-z]
+[._]sw[a-p]
+.vimrc
+.tmp
+.bak
+
 # Object files
 *.o
 *.so
+*.so*
+*.a
