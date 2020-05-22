@@ -10,7 +10,7 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/unicorn/include)
 link_directories(${CMAKE_SOURCE_DIR}/lib/unicorn)
 
 #Include Capstone
-include_directories(${CMAKE_SOURCE_DIR}/lib/capstone/include/capstone)
+include_directories(${CMAKE_SOURCE_DIR}/lib/capstone/include)
 link_directories(${CMAKE_SOURCE_DIR}/lib/capstone)
 
 #Include JsonCPP
