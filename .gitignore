@@ -1,1 +1,6 @@
+# CMake build directories
 build/
+
+# Object files
+*.o
+*.so
