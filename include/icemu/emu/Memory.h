@@ -56,9 +56,9 @@ class Memory {
   ~Memory() {
     // Delete the allocate data
     for (const auto &m : memory) {
-      delete m.data;
+      delete[] m.data;
       for (const auto &ml : m.memload) {
-        delete ml.data;
+        delete[] ml.data;
       }
     }
   }
