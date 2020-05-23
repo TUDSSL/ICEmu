@@ -11,6 +11,8 @@
 #include "icemu/Config.h"
 #include "icemu/emu/Symbols.h"
 
+namespace icemu {
+
 typedef struct memload {
   armaddr_t origin;
   armaddr_t length;
@@ -98,5 +100,7 @@ inline std::ostream &operator<<(std::ostream &out, const Memory &ml) {
 
   return out;
 }
+
+}  // namespace icemu
 
 #endif /* ICEMU_EMU_MEMORY_H_ */

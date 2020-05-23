@@ -8,6 +8,8 @@
 
 #include "icemu/emu/types.h"
 
+namespace icemu {
+
 typedef struct symbol {
   std::string name;
   armaddr_t address;
@@ -77,5 +79,7 @@ inline std::ostream &operator<<(std::ostream &out, const Symbols &s) {
   out.flags(f);
   return out;
 }
+
+}  // namespace icemu
 
 #endif /* ICEMU_EMU_SYMBOLS_H_ */

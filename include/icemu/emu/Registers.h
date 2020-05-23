@@ -8,6 +8,8 @@
 
 #include "icemu/emu/types.h"
 
+namespace icemu {
+
 class Registers {
  public:
   enum reg {
@@ -71,5 +73,7 @@ class Registers {
     out.flags(fm);
   }
 };
+
+}  // namespace icemu
 
 #endif /* ICEMU_EMU_REGISTERS_H_ */

@@ -5,6 +5,8 @@
 
 #include "icemu/emu/types.h"
 
+namespace icemu {
+
 // Base class
 class Hook {
  public:
@@ -43,5 +45,6 @@ class Hook {
   // class
   virtual ~Hook() = default;
 };
+}  // namespace icemu
 
 #endif /* ICEMU_HOOKS_HOOK_H_ */

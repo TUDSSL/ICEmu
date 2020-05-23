@@ -7,6 +7,8 @@
 #include "icemu/hooks/HookMemory.h"
 #include "icemu/hooks/Hooks.h"
 
+namespace icemu {
+
 class HookManager {
  private:
   Hooks<HookCode> hooks_code_;
@@ -50,5 +52,6 @@ class HookManager {
     hooks_memory_.run(address, arg);
   }
 };
+}  // namespace icemu
 
 #endif /* ICEMU_HOOKS_HOOKMANAGER_H_ */

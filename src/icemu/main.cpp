@@ -11,6 +11,7 @@
 #include "icemu/util/ElapsedTime.h"
 
 using namespace std;
+using namespace icemu;
 
 int main(int argc, char **argv) {
   ElapsedTime runtime;
@@ -21,7 +22,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  Config cfg(args.vm["config-file"].as<string>());
+  icemu::Config cfg(args.vm["config-file"].as<string>());
 
   if (cfg.bad()) {
     return EXIT_FAILURE;

@@ -9,6 +9,7 @@
 //
 
 using namespace std;
+using namespace icemu;
 
 using namespace boost;
 namespace po = boost::program_options;

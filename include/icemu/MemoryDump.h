@@ -3,6 +3,8 @@
 
 #include "icemu/emu/Memory.h"
 
+namespace icemu {
+
 namespace MemoryDump {
 
 enum dump_type {
@@ -11,6 +13,9 @@ enum dump_type {
 };
 
 bool dump(Memory &mem, std::string prefix = "", enum dump_type dt = HEX);
-};  // namespace MemoryDump
+
+}  // namespace MemoryDump
+
+}  // namespace icemu
 
 #endif /* ICEMU_MEMORYDUMP_H_ */

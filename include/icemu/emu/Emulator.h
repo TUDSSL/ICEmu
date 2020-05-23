@@ -11,6 +11,8 @@
 #include "icemu/emu/Memory.h"
 #include "icemu/emu/Registers.h"
 
+namespace icemu {
+
 class Emulator {
  private:
   Config &cfg_;
@@ -58,5 +60,7 @@ class Emulator {
   bool good() { return good_; }
   bool bad() { return !good_; }
 };
+
+}  // namespace icemu
 
 #endif /* ICEMU_EMU_EMULATOR_H_ */

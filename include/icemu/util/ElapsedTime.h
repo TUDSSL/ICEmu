@@ -3,6 +3,8 @@
 
 #include <chrono>
 
+namespace icemu {
+
 class ElapsedTime {
  private:
   std::chrono::high_resolution_clock::time_point start_;
@@ -33,5 +35,7 @@ class ElapsedTime {
     return (double)ms / 1000.0;
   }
 };
+
+}  // namespace icemu
 
 #endif /* ICEMU_UTIL_ELAPSED_TIME_H_ */

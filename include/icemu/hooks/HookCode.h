@@ -6,6 +6,8 @@
 #include "icemu/emu/types.h"
 #include "icemu/hooks/Hook.h"
 
+namespace icemu {
+
 class HookCode : public Hook {
   using Hook::Hook;  // Inherit constructor
 
@@ -16,5 +18,6 @@ class HookCode : public Hook {
     std::cout << "Running code hook: " << name << std::endl;
   }
 };
+}  // namespace icemu
 
 #endif /* ICEMU_HOOKS_HOOKCODE_H_ */

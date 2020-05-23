@@ -10,6 +10,7 @@
 
 using namespace ELFIO;
 using namespace std;
+using namespace icemu;
 
 static armaddr_t length_string_to_numb(string len_str) {
   size_t suffix_idx;

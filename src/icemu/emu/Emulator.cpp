@@ -7,6 +7,7 @@
 #include "icemu/emu/Emulator.h"
 
 using namespace std;
+using namespace icemu;
 
 bool Emulator::init() {
   if (bad()) {

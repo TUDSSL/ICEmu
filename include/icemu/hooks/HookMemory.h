@@ -6,6 +6,8 @@
 #include "icemu/emu/types.h"
 #include "icemu/hooks/Hook.h"
 
+namespace icemu {
+
 class HookMemory : public Hook {
   using Hook::Hook;  // Inherit constructor
 
@@ -25,5 +27,6 @@ class HookMemory : public Hook {
     std::cout << "Running memory hook: " << name << std::endl;
   }
 };
+}  // namespace icemu
 
 #endif /* ICEMU_HOOKS_HOOKMEMORY_H_ */

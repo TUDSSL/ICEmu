@@ -7,6 +7,8 @@
 #include "icemu/emu/types.h"
 #include "icemu/hooks/Hook.h"
 
+namespace icemu {
+
 template <class C>
 class Hooks {
  private:
@@ -30,5 +32,6 @@ class Hooks {
     }
   }
 };
+}  // namespace icemu
 
 #endif /* ICEMU_HOOKS_HOOKS_H_ */

@@ -3,6 +3,8 @@
 
 #include "boost/program_options.hpp"
 
+namespace icemu {
+
 class ArgParse {
  private:
   bool good_ = false;
@@ -16,5 +18,7 @@ class ArgParse {
   bool good() { return good_; }
   bool bad() { return !good_; }
 };
+
+}  // namespace icemu
 
 #endif /* ICEMU_ARGPARSE_H_ */

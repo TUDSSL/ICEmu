@@ -6,6 +6,8 @@
 
 #include "json/json.h"
 
+namespace icemu {
+
 namespace Setting = Json;
 
 class Config {
@@ -51,5 +53,7 @@ class Config {
     std::cout << settings << std::endl;
   }
 };
+
+}  // namespace icemu
 
 #endif /* ICEMU_CONFIG_H_ */

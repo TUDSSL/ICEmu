@@ -3,10 +3,14 @@
 
 #include "icemu/hooks/HookManager.h"
 
+namespace icemu {
+
 class RegisterHook {
  public:
   HookManager::ExtensionHookFn reg;
   RegisterHook(HookManager::ExtensionHookFn f) : reg(f){};
 };
+
+}  // namespace icemu
 
 #endif /* HOOKS_REGISTERHOOK_H_ */
