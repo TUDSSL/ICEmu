@@ -3,6 +3,7 @@
 
 #include "icemu/hooks/HookManager.h"
 #include "icemu/hooks/builtin/HookInstructionCount.h"
+#include "icemu/hooks/builtin/HookStopEmulation.h"
 
 namespace icemu {
 
@@ -10,6 +11,7 @@ namespace BuiltinHooks {
 
   void registerHooks(HookManager &hm) {
     hm.add(new HookInstructionCount()); // Instruction count hook
+    hm.add(new HookStopEmulation()); // Instruction count hook
   }
 
 }

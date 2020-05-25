@@ -45,8 +45,20 @@ bool Emulator::run() {
   // Initialize the hooks
   registerHooks();
 
-  armaddr_t sp = 0x1005fff8;
-  uc_reg_write(uc, UC_ARM_REG_SP, &sp);
+  // Multiple TODO for this one:
+  //  - Make the symbol configurable
+  //  - Make the memory mapping such that it can cope with the vector table (at
+  //    address 0x0 (currently unmapped, not sure how to infer stuff like this
+  //    generically)
+  //  - Then fix (read restore) the `startup_gcc.c` code in a way that sets the
+  //    SP without having to manually specify it.
+  try {
+    armaddr_t sp = getMemory().symbols.get("_estack")->address;
+    uc_reg_write(uc, UC_ARM_REG_SP, &sp);
+  } catch (const std::out_of_range &e) {
+    cerr << "Failed to find the address of symbol: _estack" << endl;
+    return false;
+  }
 
   uc_err err = uc_emu_start(uc, mem_.entrypoint | 1, 0xc154, 0, 0);
   if (err) {
@@ -143,4 +155,14 @@ bool Emulator::registerHooks() {
 
   return true;
 }
+
+void Emulator::stop(string reason) {
+  cout << "Stopping the emulator, reason: " << reason << endl;
+  uc_err err = uc_emu_stop(uc);
+
+  if (err != UC_ERR_OK) {
+    cerr << "Failed to stop the emulator" << endl;
+  }
+}
+
 

@@ -3,6 +3,8 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <csignal>
+#include <atomic>
 
 #include "icemu/emu/types.h"
 #include "icemu/ArgParse.h"
@@ -11,33 +13,45 @@
 #include "icemu/emu/Emulator.h"
 #include "icemu/emu/Memory.h"
 #include "icemu/util/ElapsedTime.h"
-
 #include "icemu/hooks/builtin/BuiltinHooks.h"
-
 #include "icemu/plugin/PluginManager.h"
 
 using namespace std;
 using namespace icemu;
 
+namespace icemu {
+volatile atomic<bool> gStopEmulation;
+}
+
+static void signal_handler(int signal) {
+  // A signal occured
+  cout << "Captured signal: " << signal << endl;
+  gStopEmulation = true;
+}
+
 int main(int argc, char **argv) {
   ElapsedTime runtime;
 
   cout << "ICEmu ARM Emulator" << endl;
+
+  // Setup signal handler
+  signal(SIGINT, signal_handler);
+
   ArgParse args(argc, argv);
   if (args.bad()) {
-    return EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   Config cfg(args.vm["config-file"].as<string>());
 
   if (cfg.bad()) {
-    return EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   Memory mem(cfg, args.vm["elf-file"].as<string>());
   if (mem.bad()) {
     cerr << "Error building memory layout" << endl;
-    return EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   cout << mem << endl;

@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <list>
 
 #include "icemu/emu/types.h"
 
@@ -44,11 +45,7 @@ class Symbols {
     symbol_t *symb;
 
     build_maps();
-    try {
-      symb = map_addr_symbol.at(addr);
-    } catch (const std::out_of_range &e) {
-      symb = NULL;
-    }
+    symb = map_addr_symbol.at(addr); // TODO Should I make a custom exception?
     return symb;
   }
 
@@ -56,11 +53,7 @@ class Symbols {
     symbol_t *symb;
 
     build_maps();
-    try {
-      symb = map_name_symbol.at(name);
-    } catch (const std::out_of_range &e) {
-      symb = NULL;
-    }
+    symb = map_name_symbol.at(name); // TODO Should I make a custom exception?
     return symb;
   }
 

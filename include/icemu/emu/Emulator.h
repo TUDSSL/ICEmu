@@ -67,6 +67,7 @@ class Emulator {
 
   bool init();
   bool run();
+  void stop(std::string reason="unspecified");
 
   bool registerHooks();
 
