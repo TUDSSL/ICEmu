@@ -12,21 +12,58 @@ target_include_directories(${PROJECT_NAME}
     ${PROJECT_SOURCE_DIR}/include
     )
 
-# Debug options
-target_compile_options(${PROJECT_NAME}
-    PUBLIC
+set(DEBUG_COMPILE_OPTIONS
     -Wall
+    -Wextra
     -g
     -ggdb
     -O0
     -std=c++11
+    #-pg
     -fsanitize=address -fsanitize=undefined # Find memory related bugs, makes it way slower
     )
 
-target_link_options(${PROJECT_NAME}
-    PUBLIC
+set(DEBUG_LINK_OPTIONS
+    #-pg
     -fsanitize=address -fsanitize=undefined # Find memory related bugs, makes it way slower
     )
+
+
+set(RELEASE_COMPILE_OPTIONS
+    -Ofast
+    -g
+    -ggdb
+    -Wall
+    -std=c++11
+    -flto
+    )
+
+set(RELEASE_LINK_OPTIONS
+    -flto
+    )
+
+
+target_compile_options(${PROJECT_NAME} PUBLIC "$<$<CONFIG:DEBUG>:${DEBUG_COMPILE_OPTIONS}>")
+target_compile_options(${PROJECT_NAME} PUBLIC "$<$<CONFIG:RELEASE>:${RELEASE_COMPILE_OPTIONS}>")
+
+target_link_options(${PROJECT_NAME} PUBLIC "$<$<CONFIG:DEBUG>:${DEBUG_LINK_OPTIONS}>")
+target_link_options(${PROJECT_NAME} PUBLIC "$<$<CONFIG:RELEASE>:${RELEASE_LINK_OPTIONS}>")
+
+# Debug options
+#target_compile_options(${PROJECT_NAME}
+#    PUBLIC
+#    -Wall
+#    -g
+#    -ggdb
+#    -O0
+#    -std=c++11
+#    -fsanitize=address -fsanitize=undefined # Find memory related bugs, makes it way slower
+#    )
+
+#target_link_options(${PROJECT_NAME}
+#    PUBLIC
+#    -fsanitize=address -fsanitize=undefined # Find memory related bugs, makes it way slower
+#    )
 
 # Link to libraries
 target_link_libraries(${PROJECT_NAME}

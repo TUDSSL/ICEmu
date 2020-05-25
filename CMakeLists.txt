@@ -20,5 +20,17 @@ link_directories(${CMAKE_SOURCE_DIR}/lib/jsoncpp/build/lib)
 #Include ElfIO
 include_directories(${CMAKE_SOURCE_DIR}/lib/ELFIO)
 
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING
+        #"Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+        "Choose the type of build, options are: Debug Release - Defaulting to: Debug"
+        FORCE
+        )
+    message("Defaulting build type to: ${CMAKE_BUILD_TYPE}")
+else()
+    message("Build type: ${CMAKE_BUILD_TYPE}")
+endif()
+
 # ICEmu sources
 add_subdirectory(src/icemu)
