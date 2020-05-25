@@ -49,8 +49,6 @@ int main(int argc, char **argv) {
   emu.init();
 
   /* Register all builtin hooks */
-  //HookInstructionCount *hook_instr_cnt = new HookInstructionCount();
-  //emu.hook_manager.add(hook_instr_cnt);
   BuiltinHooks::registerHooks(emu.getHookManager());
 
   cout << "Starting emulation" << endl;
@@ -61,9 +59,7 @@ int main(int argc, char **argv) {
   runtime.stop();
 
   cout << "Emulation ended" << endl;
-  cout << "Result register: " << emu.registers.get(Registers::RETURN) << endl;
-  // cout << "Registers:" << endl;
-  // emu.registers.dump();
+  cout << "Result register: " << emu.getRegisters().get(Registers::RETURN) << endl;
 
   // Get the runtime of the emulation
   auto s = runtime.get_s();
@@ -75,17 +71,17 @@ int main(int argc, char **argv) {
     cout << "Dumping Registers to file: " << filename << endl;
     ofstream outfile;
     outfile.open(filename, ios::out | ios::trunc);
-    emu.registers.dump(outfile);
+    emu.getRegisters().dump(outfile);
     outfile.close();
   }
 
   // Dump the memory if required
   if (args.vm.count("dump-bin")) {
     string dump_prefix = args.vm["dump-prefix"].as<string>();
-    MemoryDump::dump(mem, dump_prefix, MemoryDump::BIN);
+    MemoryDump::dump(emu.getMemory(), dump_prefix, MemoryDump::BIN);
   }
   if (args.vm.count("dump-hex")) {
     string dump_prefix = args.vm["dump-prefix"].as<string>();
-    MemoryDump::dump(mem, dump_prefix, MemoryDump::HEX);
+    MemoryDump::dump(emu.getMemory(), dump_prefix, MemoryDump::HEX);
   }
 }

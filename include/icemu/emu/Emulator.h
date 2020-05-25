@@ -19,6 +19,9 @@ class Emulator {
   Config &cfg_;
   Memory &mem_;
 
+  Registers registers;
+  HookManager hook_manager;
+
   /* Unicorn */
   uc_engine *uc = NULL;
   /* Unicorn hooks */
@@ -35,8 +38,6 @@ class Emulator {
   bool registerMemoryHook();
 
  public:
-  Registers registers;
-  HookManager hook_manager;
 
   Emulator(Config &cfg, Memory &mem) : cfg_(cfg), mem_(mem) {
     /* Open the unicorn emulator engine */
