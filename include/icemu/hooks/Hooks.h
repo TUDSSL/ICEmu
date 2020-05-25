@@ -2,9 +2,9 @@
 #define ICEMU_HOOKS_HOOKS_H_
 
 #include <set>
-#include <list>
 #include <iostream>
 #include <boost/icl/interval_map.hpp>
+#include <vector>
 
 #include "icemu/emu/types.h"
 #include "icemu/hooks/Hook.h"
@@ -22,7 +22,7 @@ class Hooks {
   interval_hookset_t hooks_interval;
 
   // Hooks that run every time
-  std::list<Hook *> hooks_all;
+  std::vector<Hook *> hooks_all;
 
  public:
   void add(Hook *hook) {
