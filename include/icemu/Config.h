@@ -1,6 +1,7 @@
 #ifndef ICEMU_CONFIG_H_
 #define ICEMU_CONFIG_H_
 
+#include <json/value.h>
 #include <exception>
 #include <fstream>
 #include <iostream>
@@ -45,6 +46,26 @@ class Config {
       if (a[key].type() == Json::objectValue &&
           b[key].type() == Json::objectValue) {
         update(a[key], b[key]);
+
+      } else if (a[key].type() == Json::arrayValue &&
+                 b[key].type() == Json::arrayValue) {
+        for (const auto &entry : b[key]) {
+          bool updated_entry = false;
+          try {
+            std::string entry_name = entry["name"].asString();
+            // Find the entry name in the existing configuration
+            for (auto &old_entry : a[key]) {
+              if (entry_name == old_entry["name"].asString()) {
+                old_entry = entry;
+                updated_entry = true;
+              }
+            }
+          } catch (...) {
+          }
+          if (!updated_entry) {
+            a[key].append(entry);
+          }
+        }
       } else {
         a[key] = b[key];
       }
