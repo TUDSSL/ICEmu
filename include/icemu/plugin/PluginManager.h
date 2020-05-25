@@ -3,7 +3,6 @@
 
 #include <boost/dll/shared_library.hpp>
 #include <iostream>
-#include <list>
 #include <exception>
 
 #include "boost/dll.hpp"
@@ -14,9 +13,10 @@
 namespace icemu {
 
 class PluginManager {
- public:
+ private:
   std::list<RegisterHook *> plugins;
 
+ public:
   bool add(std::string libloc) {
     bool success;
     try {
@@ -36,6 +36,12 @@ class PluginManager {
 
   std::list<RegisterHook *>& getHooks() {
     return plugins;
+  }
+
+  void registerHooks(HookManager &hm) {
+    for (auto &p : plugins) {
+      p->reg(hm);
+    }
   }
 };
 

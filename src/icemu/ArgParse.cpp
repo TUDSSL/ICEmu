@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include "boost/program_options.hpp"
 
@@ -26,6 +27,7 @@ bool ArgParse::parse(int argc, char **argv) {
     desc.add_options()("help", "produce help message")(
         "config-file,c", po::value<string>()->required(), "json config file")(
         "elf-file,e", po::value<string>(), "elf input file")(
+        "plugin,p", po::value< vector<string> >(), "load plugin (can be passed multiple times)")(
         "dump-hex,h", "dump hex file of the memory regions at completion")(
         "dump-bin,b", "dump bin file of the memory regions at completion")(
         "dump-reg,r", "dump file with the register values at completion")(
