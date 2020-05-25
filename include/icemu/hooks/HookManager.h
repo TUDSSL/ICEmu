@@ -1,6 +1,9 @@
 #ifndef ICEMU_HOOKS_HOOKMANAGER_H_
 #define ICEMU_HOOKS_HOOKMANAGER_H_
 
+#include <set>
+#include <iostream>
+
 #include "icemu/emu/types.h"
 #include "icemu/hooks/Hook.h"
 #include "icemu/hooks/HookCode.h"
@@ -50,6 +53,15 @@ class HookManager {
 
   void run(armaddr_t address, HookMemory::hook_arg_t *arg) {
     hooks_memory_.run(address, arg);
+  }
+
+  Hook *get(std::string name) {
+    for (Hook *h : hooks_all) {
+      if (h->name == name) {
+        return h;
+      }
+    }
+    return NULL;
   }
 };
 }  // namespace icemu

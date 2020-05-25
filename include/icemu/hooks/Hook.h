@@ -7,6 +7,8 @@
 
 namespace icemu {
 
+class Emulator;
+
 // Base class
 class Hook {
  public:
@@ -17,7 +19,7 @@ class Hook {
   };
 
   struct hook_arg {
-    // Emulator *emu;
+    Emulator *emu;
     armaddr_t address;
     armaddr_t size;
   };

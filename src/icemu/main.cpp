@@ -3,12 +3,16 @@
 #include <fstream>
 #include <iostream>
 
+#include "icemu/emu/types.h"
 #include "icemu/ArgParse.h"
 #include "icemu/Config.h"
 #include "icemu/MemoryDump.h"
 #include "icemu/emu/Emulator.h"
 #include "icemu/emu/Memory.h"
 #include "icemu/util/ElapsedTime.h"
+
+#include "icemu/hooks/builtin/HookInstructionCount.h"
+#include "icemu/hooks/builtin/BuiltinHooks.h"
 
 using namespace std;
 using namespace icemu;
@@ -22,7 +26,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  icemu::Config cfg(args.vm["config-file"].as<string>());
+  Config cfg(args.vm["config-file"].as<string>());
 
   if (cfg.bad()) {
     return EXIT_FAILURE;
@@ -43,6 +47,11 @@ int main(int argc, char **argv) {
   /* Run emulation */
   Emulator emu(cfg, mem);
   emu.init();
+
+  /* Register all builtin hooks */
+  //HookInstructionCount *hook_instr_cnt = new HookInstructionCount();
+  //emu.hook_manager.add(hook_instr_cnt);
+  BuiltinHooks::registerHooks(emu.getHookManager());
 
   cout << "Starting emulation" << endl;
   runtime.start();  // Start tracking the runtime

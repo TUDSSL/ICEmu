@@ -10,6 +10,7 @@
 #include "icemu/Config.h"
 #include "icemu/emu/Memory.h"
 #include "icemu/emu/Registers.h"
+#include "icemu/hooks/HookManager.h"
 
 namespace icemu {
 
@@ -20,13 +21,22 @@ class Emulator {
 
   /* Unicorn */
   uc_engine *uc = NULL;
+  /* Unicorn hooks */
+  uc_hook uc_hook_code;
+  uc_hook uc_hook_memory;
+
   /* Capstone */
   csh cs;
 
   bool good_ = true;
 
+  // Register hooks in unicorn
+  bool registerCodeHook();
+  bool registerMemoryHook();
+
  public:
   Registers registers;
+  HookManager hook_manager;
 
   Emulator(Config &cfg, Memory &mem) : cfg_(cfg), mem_(mem) {
     /* Open the unicorn emulator engine */
@@ -57,8 +67,19 @@ class Emulator {
   bool init();
   bool run();
 
+  bool registerHooks();
+
   bool good() { return good_; }
   bool bad() { return !good_; }
+
+  // Getters
+  inline Registers &getRegisters() { return registers; }
+  inline Memory &getMemory() { return mem_; }
+  inline HookManager &getHookManager() { return hook_manager; }
+  inline Config &getConfig() { return cfg_; }
+  inline uc_engine *getUnicornEngine() { return uc; }
+  inline csh *getCapstoneEngine() { return &cs; }
+
 };
 
 }  // namespace icemu

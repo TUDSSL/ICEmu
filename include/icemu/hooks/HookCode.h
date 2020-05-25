@@ -14,9 +14,7 @@ class HookCode : public Hook {
  public:
   typedef struct hook_arg hook_arg_t;
 
-  virtual void run(hook_arg_t *arg) {
-    std::cout << "Running code hook: " << name << std::endl;
-  }
+  virtual void run(hook_arg_t *arg) = 0;
 };
 }  // namespace icemu
 
