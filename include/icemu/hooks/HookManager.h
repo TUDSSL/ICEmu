@@ -28,21 +28,21 @@ class HookManager {
 
   ~HookManager() {
     for (auto h : hooks_all) {
-      std::cout << "Deleting: " << h->name << " addr: " << h << std::endl;
+      //std::cout << "Deleting: " << h->name << " addr: " << h << std::endl;
       delete h;
     }
   }
 
   void add(HookCode *hook) {
-    std::cout << "Hook Builder adding code hook: " << hook->name
-              << " addr: " << hook << std::endl;
+    //std::cout << "Hook Builder adding code hook: " << hook->name
+    //          << " addr: " << hook << std::endl;
     track_hook(hook);
     hooks_code_.add(hook);
   }
 
   void add(HookMemory *hook) {
-    std::cout << "Hook Builder adding memory hook: " << hook->name
-              << " addr: " << hook << std::endl;
+    //std::cout << "Hook Builder adding memory hook: " << hook->name
+    //          << " addr: " << hook << std::endl;
     track_hook(hook);
     hooks_memory_.add(hook);
   }
