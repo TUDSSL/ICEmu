@@ -25,7 +25,7 @@ bool ArgParse::parse(int argc, char **argv) {
   try {
     po::options_description desc("Allowed options");
     desc.add_options()("help", "produce help message")(
-        "config-file,c", po::value<string>()->required(), "json config file")(
+        "config-file,c", po::value< vector<string> >()->required(), "json config file")(
         "elf-file,e", po::value<string>(), "elf input file")(
         "plugin,p", po::value< vector<string> >(), "load plugin (can be passed multiple times)")(
         "dump-hex,h", "dump hex file of the memory regions at completion")(
@@ -35,7 +35,6 @@ bool ArgParse::parse(int argc, char **argv) {
         "dump file prefix");
 
     po::positional_options_description p;
-    // p.add("config-file", -1);
     p.add("elf-file", -1);
 
     po::store(
@@ -50,17 +49,6 @@ bool ArgParse::parse(int argc, char **argv) {
 
     po::notify(vm);
 
-    // if (vm.count("config-file"))
-    //{
-    //    cout << "config file: "
-    //         << vm["config-file"].as<string>() << "\n";
-    //}
-
-    // if (vm.count("elf-file"))
-    //{
-    //    cout << "elf file: "
-    //         << vm["elf-file"].as<string>() << "\n";
-    //}
   } catch (std::exception &e) {
     cerr << e.what() << "\n";
     return false;

@@ -42,9 +42,19 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  Config cfg(args.vm["config-file"].as<string>());
+  /* Add all the configuration files in order they appeared in */
+  vector<string> cfg_files = args.vm["config-file"].as<vector <string> >();
+  Config cfg;
+
+  for (const auto &cfg_file : cfg_files) {
+    cfg.add(cfg_file);
+    if (cfg.bad()) {
+      break;
+    }
+  }
 
   if (cfg.bad()) {
+    cerr << "Bad configuration" << endl;
     exit(EXIT_FAILURE);
   }
 
