@@ -15,5 +15,13 @@
       "origin": "0x51000000",
       "length": "512K"
     }
-  ]
+  ],
+  // Optional plugin loading
+  //"plugins": [
+  //    {
+  //      // ../example/plugin/hook_code_plugin/hook_code_plugin.so
+  //      "plugin" : "../example/plugin/hook_code_plugin/hook_code_plugin.so",
+  //      // Future optional config per plugin
+  //    }
+  //],
 }

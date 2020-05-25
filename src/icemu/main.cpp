@@ -53,13 +53,22 @@ int main(int argc, char **argv) {
   /* Register all builtin hooks */
   BuiltinHooks::registerHooks(emu.getHookManager());
 
-  /* Register the hooks passed as arguments */
-  // Get the plugin files from the arguments
+  /* Register the plugin based hooks */
   PluginManager plugin_manager;
+
+  // Register the hooks in the configuration file
+  for (const auto &plugins : emu.getConfig().settings["plugins"]) {
+    string p = plugins["plugin"].asString();
+    cout << "Loading plugin: " << p << " (configuration file)" << endl;
+    plugin_manager.add(p);
+  }
+
+  // Register the hooks passed as arguments
+  // Get the plugin files from the arguments
   if (args.vm.count("plugin")) {
     auto plugins = args.vm["plugin"].as< vector<string> >();
     for (const auto &p : plugins) {
-      cout << "Loading plugin: " << p << endl;
+      cout << "Loading plugin: " << p << " (argument)" << endl;
       plugin_manager.add(p);
     }
   }
