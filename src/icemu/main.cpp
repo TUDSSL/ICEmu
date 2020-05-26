@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
     }
   }
   // Actually register the hooks in the HookManager of the emulator
-  plugin_manager.registerHooks(emu.getHookManager());
+  plugin_manager.registerHooks(emu, emu.getHookManager());
 
   cout << "Starting emulation" << endl;
   runtime.start();  // Start tracking the runtime

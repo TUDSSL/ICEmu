@@ -8,6 +8,7 @@
  */
 #include <iostream>
 
+#include "icemu/emu/Emulator.h"
 #include "icemu/hooks/HookCode.h"
 #include "icemu/hooks/HookManager.h"
 #include "icemu/hooks/RegisterHook.h"
@@ -28,7 +29,7 @@ class MyHookCodePlugin : public HookCode {
   //}
 
   // No address range would always execute
-  MyHookCodePlugin() : HookCode("Hook Code Pluging Example") {
+  MyHookCodePlugin(Emulator &emu) : HookCode(emu, "Hook Code Pluging Example") {
     cout << "Constructor my DLL code hook" << endl;
   }
 
@@ -39,8 +40,8 @@ class MyHookCodePlugin : public HookCode {
 };
 
 // Function that registers the hook
-static void registerMyCodeHook(HookManager &HM) {
-  HM.add(new MyHookCodePlugin());
+static void registerMyCodeHook(Emulator &emu, HookManager &HM) {
+  HM.add(new MyHookCodePlugin(emu));
 }
 
 // Class that is used by ICEmu to finf the register function

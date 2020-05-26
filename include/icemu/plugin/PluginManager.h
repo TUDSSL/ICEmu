@@ -38,9 +38,9 @@ class PluginManager {
     return plugins;
   }
 
-  void registerHooks(HookManager &hm) {
+  void registerHooks(Emulator &emu, HookManager &hm) {
     for (auto &p : plugins) {
-      p->reg(hm);
+      p->reg(emu, hm);
     }
   }
 };

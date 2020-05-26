@@ -22,7 +22,7 @@ class HookManager {
   inline void track_hook(Hook *h) { hooks_all.insert(h); }
 
  public:
-  typedef std::function<void(HookManager &hb)> ExtensionHookFn;
+  typedef std::function<void(Emulator &emu, HookManager &hb)> ExtensionHookFn;
 
   HookManager() = default;
 
