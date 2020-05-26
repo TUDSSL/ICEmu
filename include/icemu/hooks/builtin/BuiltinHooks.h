@@ -9,9 +9,9 @@ namespace icemu {
 
 namespace BuiltinHooks {
 
-  void registerHooks(HookManager &hm) {
-    hm.add(new HookInstructionCount()); // Instruction count hook
-    hm.add(new HookStopEmulation()); // Instruction count hook
+  void registerHooks(Emulator &emu, HookManager &hm) {
+    hm.add(new HookInstructionCount(emu)); // Instruction count hook
+    hm.add(new HookStopEmulation(emu)); // Instruction count hook
   }
 
 }

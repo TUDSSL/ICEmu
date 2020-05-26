@@ -78,7 +78,6 @@ static void hook_code_cb(uc_engine *uc, uint64_t address, uint32_t size, void *u
 
   // Build the argument struct
   HookCode::hook_arg_t arg;
-  arg.emu = emu;
   arg.address = (armaddr_t)address;
   arg.size = (armaddr_t)size;
 
@@ -94,7 +93,6 @@ static void hook_memory_cb(uc_engine *uc, uc_mem_type type, uint64_t address, in
 
   // Build the argument struct
   HookMemory::hook_arg_t arg;
-  arg.emu = emu;
   arg.address = (armaddr_t)address;
   arg.size = (armaddr_t)size;
   arg.value = (armaddr_t)value;

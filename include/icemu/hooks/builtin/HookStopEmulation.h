@@ -13,15 +13,16 @@ extern volatile std::atomic<bool> gStopEmulation;
 
 class HookStopEmulation : public HookCode {
  public:
-  HookStopEmulation() : HookCode("stop_emulation") {
+  HookStopEmulation(Emulator &emu) : HookCode(emu, "stop_emulation") {
   }
 
   ~HookStopEmulation() {
   }
 
   void run(hook_arg_t *arg) {
+    (void)arg;
     if (gStopEmulation == true) {
-      arg->emu->stop("Stop signal received");
+      getEmulator().stop("Stop signal received");
     }
   }
 };

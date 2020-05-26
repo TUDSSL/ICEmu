@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
   emu.init();
 
   /* Register all builtin hooks */
-  BuiltinHooks::registerHooks(emu.getHookManager());
+  BuiltinHooks::registerHooks(emu, emu.getHookManager());
 
   /* Register the plugin based hooks */
   PluginManager plugin_manager;

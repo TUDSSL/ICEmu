@@ -12,7 +12,7 @@ class HookInstructionCount : public HookCode {
   uint64_t icnt = 0;
 
  public:
-  HookInstructionCount() : HookCode("icnt") {
+  HookInstructionCount(Emulator &emu) : HookCode(emu, "icnt") {
   }
 
   ~HookInstructionCount() {
