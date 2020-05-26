@@ -38,6 +38,7 @@ class Config {
     return true;
   }
 
+#if 0 // TODO: Fix issue #2
   void update(Json::Value &a, Json::Value &b) {
     if (!a.isObject() || !b.isObject()) {
       return;
@@ -71,6 +72,7 @@ class Config {
       }
     }
   }
+#endif
 
  public:
   Json::Value settings;
@@ -94,6 +96,10 @@ class Config {
       good_ = parse(settings, cfg_file);
     } else {
       // Merge the new config into the old one
+      std::cout << "MERGING CONFIGURATION FILES SUCKS AND IS INCOMPLETE, SEE ISSUE #2" << std::endl;
+      std::cout << "PLEASE DON'T USE THIS, MERGE THE CONFIGURATION MANUALLY" << std::endl;
+      good_ = false;
+      #if 0
       Json::Value update_settings;
       good_ = parse(update_settings, cfg_file);
       if (good_) {
@@ -105,6 +111,7 @@ class Config {
           good_ = false;
         }
       }
+      #endif
     }
     return good_;
   }
