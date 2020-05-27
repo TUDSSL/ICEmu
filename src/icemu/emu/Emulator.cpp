@@ -130,18 +130,16 @@ bool Emulator::registerCodeHook() {
 
 bool Emulator::registerMemoryHook() {
 
-#if 0
   // If begin > end the hook is always called
   const uint64_t range_memory_begin = 1;
   const uint64_t range_memory_end = 0;
 
   // We want to hook READ and WRITE and figure it out later
-  uc_hook_add(uc, &uc_hook_memory, UC_HOOK_MEM_READ, (void *)&hook_code_cb,
-              (void *)&hook_manager, range_memory_begin, range_memory_end);
+  uc_hook_add(uc, &uc_hook_memory, UC_HOOK_MEM_READ, (void *)&hook_memory_cb,
+              (void *)this, range_memory_begin, range_memory_end);
 
   uc_hook_add(uc, &uc_hook_memory, UC_HOOK_MEM_WRITE, (void *)&hook_memory_cb,
-              (void *)&hook_manager, range_memory_begin, range_memory_end);
-#endif
+              (void *)this, range_memory_begin, range_memory_end);
 
   return true; // TODO
 }
