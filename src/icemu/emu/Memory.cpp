@@ -16,7 +16,7 @@ static armaddr_t length_string_to_numb(string len_str) {
   size_t suffix_idx;
   armaddr_t len;
 
-  len = stoi(len_str, &suffix_idx, 10);  // TODO: is this always base 10?
+  len = stol(len_str, &suffix_idx, 10);  // TODO: is this always base 10?
 
   // Parse the suffix, i.e. K or M
   string suffix = len_str.substr(suffix_idx);
@@ -77,7 +77,7 @@ bool Memory::collect() {
   for (const auto &m : cfg_.settings["memory"]) {
     memseg_t memseg;
     memseg.name = m["name"].as<string>();
-    memseg.origin = stoi(m["origin"].as<string>(), nullptr, 16);
+    memseg.origin = stol(m["origin"].as<string>(), nullptr, 16);
     memseg.length = length_string_to_numb(m["length"].as<string>());
 
     memory.push_back(memseg);
@@ -186,6 +186,7 @@ bool Memory::allocate() {
       // to be a multiple of 1024
       m.allocated_length = align_1024((size_t)m.length);
       m.data = new uint8_t[m.allocated_length];
+      memset(m.data, 0, m.allocated_length);
     }
   } catch (const std::bad_alloc &) {
     return false;
@@ -201,4 +202,13 @@ void Memory::populate() {
       memcpy(&data[start_wr], ml.data, ml.length);
     }
   }
+}
+
+memseg_t *Memory::find(string memseg_name) {
+  for (auto &ms : memory) {
+    if (ms.name == memseg_name) {
+      return &ms;
+    }
+  }
+  return NULL;
 }

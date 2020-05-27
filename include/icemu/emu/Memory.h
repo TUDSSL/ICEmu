@@ -66,6 +66,7 @@ class Memory {
   }
 
   void populate();
+  memseg_t *find(std::string memseg_name);
 
   bool good() { return good_; }
   bool bad() { return !good_; }
