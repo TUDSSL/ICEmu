@@ -55,6 +55,9 @@ class Hooks {
         case Hook::STATUS_OK:
           ++it;
           break;
+        case Hook::STATUS_SKIP_REST:
+          it = hooks.end();
+          break;
         case Hook::STATUS_ERROR:
           std::cerr << "Hook error in " << hk->name << std::endl;
           ++it;

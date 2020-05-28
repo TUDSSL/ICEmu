@@ -42,9 +42,6 @@ bool Emulator::run() {
     return false;
   }
 
-  // Initialize the hooks
-  registerHooks();
-
   // Multiple TODO for this one:
   //  - Make the symbol configurable
   //  - Make the memory mapping such that it can cope with the vector table (at
@@ -60,7 +57,9 @@ bool Emulator::run() {
     return false;
   }
 
-  uc_err err = uc_emu_start(uc, mem_.entrypoint | 1, 0xc154, 0, 0);
+  const uint64_t emu_start_addr = getMemory().entrypoint | 1;
+  const uint64_t emu_stop_addr = 0; // Address 0 should never be executed, so run forever
+  uc_err err = uc_emu_start(uc, emu_start_addr, emu_stop_addr, 0, 0);
   if (err) {
     cerr << "Failed to start emulation with error: " << err << " ("
          << uc_strerror(err) << ")" << endl;
