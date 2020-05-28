@@ -32,6 +32,9 @@ static void signal_handler(int signal) {
 int main(int argc, char **argv) {
   ElapsedTime runtime;
 
+  /* Register the plugin based hooks */
+  PluginManager plugin_manager;
+
   cout << "ICEmu ARM Emulator" << endl;
 
   // Setup signal handler
@@ -76,9 +79,6 @@ int main(int argc, char **argv) {
 
   /* Register all builtin hooks */
   BuiltinHooks::registerHooks(emu, emu.getHookManager());
-
-  /* Register the plugin based hooks */
-  PluginManager plugin_manager;
 
   // Register the hooks in the configuration file
   for (const auto &plugins : emu.getConfig().settings["plugins"]) {
@@ -132,4 +132,6 @@ int main(int argc, char **argv) {
     string dump_prefix = args.vm["dump-prefix"].as<string>();
     MemoryDump::dump(emu.getMemory(), dump_prefix, MemoryDump::HEX);
   }
+
+  return EXIT_SUCCESS;
 }
