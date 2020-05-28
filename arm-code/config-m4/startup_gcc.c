@@ -243,14 +243,14 @@ Reset_Handler(void)
     //
     // Set the vector table pointer.
     //
-    //__asm("    ldr    r0, =0xE000ED08\n"
-    //      "    ldr    r1, =g_am_pfnVectors\n"
-    //      "    str    r1, [r0]");
+    __asm("    ldr    r0, =0xE000ED08\n"
+          "    ldr    r1, =g_am_pfnVectors\n"
+          "    str    r1, [r0]");
 
     //
     // Set the stack pointer.
     //
-    //__asm("    ldr    sp, [r1]");
+    __asm("    ldr    sp, [r1]");
 
 //#ifndef NOFPU
 //    //
