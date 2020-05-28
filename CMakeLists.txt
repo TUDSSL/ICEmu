@@ -34,3 +34,6 @@ endif()
 
 # ICEmu sources
 add_subdirectory(src/icemu)
+
+# Build the plugins
+add_subdirectory(src/plugins)
