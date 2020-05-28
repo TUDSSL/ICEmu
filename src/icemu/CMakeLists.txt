@@ -24,6 +24,7 @@ set(DEBUG_COMPILE_OPTIONS
     )
 
 set(DEBUG_LINK_OPTIONS
+    -rdynamic
     #-pg
     -fsanitize=address -fsanitize=undefined # Find memory related bugs, makes it way slower
     )
@@ -40,6 +41,7 @@ set(RELEASE_COMPILE_OPTIONS
 
 set(RELEASE_LINK_OPTIONS
     -flto
+    -rdynamic
     )
 
 
