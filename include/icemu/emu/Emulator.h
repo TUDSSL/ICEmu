@@ -1,6 +1,7 @@
 #ifndef ICEMU_EMU_EMULATOR_H_
 #define ICEMU_EMU_EMULATOR_H_
 
+#include <array>
 #include <iomanip>
 #include <iostream>
 
@@ -73,6 +74,8 @@ class Emulator {
 
   bool good() { return good_; }
   bool bad() { return !good_; }
+
+  bool readMemory(armaddr_t address, char *restult, armaddr_t size);
 
   // Getters
   inline Registers &getRegisters() { return registers; }

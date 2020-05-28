@@ -161,4 +161,15 @@ void Emulator::stop(string reason) {
   }
 }
 
+// TODO: Should probably make a "C++" version using a vector or something
+bool Emulator::readMemory(armaddr_t address, char *result, armaddr_t size)
+{
+  uc_err err = uc_mem_read(uc, address, result, size);
+  if (err != UC_ERR_OK) {
+    cerr << "Failed to read memory at address: " << address << " size: " << size
+         << endl;
+    return false;
+  }
+  return true;
+}
 
