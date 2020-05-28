@@ -11,14 +11,21 @@ class Emulator;
 
 // Base class
 class Hook {
- private:
-  Emulator &emu_;
-
  public:
   enum hook_type {
     UNINITIALIZED,
     RANGE,
     ALL,
+  };
+
+  enum hook_status {
+    STATUS_OK,        // All OK
+    STATUS_SKIP_REST, // Skip the rest of the hooks (only includes
+    STATUS_DISABLED,  // Disable this hook, can only be enabled by another hook
+    STATUS_ERROR,     // An error occurred while running the hook
+    STATUS_DELETE,    // Delete the hook after processing all hooks (at the start
+                      // of the new round, so if any hooks depend on it they are
+                      // serviced first
   };
 
   struct hook_arg {
@@ -48,6 +55,15 @@ class Hook {
   virtual ~Hook() = default;
 
   inline Emulator &getEmulator() { return emu_; }
+
+  inline void setStatus(enum hook_status hs) { hs_ = hs; }
+
+  inline enum hook_status getStatus(void) { return hs_; }
+
+ private:
+  Emulator &emu_;
+  enum hook_status hs_ = STATUS_OK;
+
 };
 }  // namespace icemu
 
