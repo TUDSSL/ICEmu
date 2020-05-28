@@ -15,13 +15,15 @@ namespace icemu {
 class PluginManager {
  private:
   std::list<RegisterHook *> plugins;
+  std::list<boost::dll::shared_library *> libraries;
 
  public:
   bool add(std::string libloc) {
     bool success;
     try {
-      boost::dll::shared_library lib(libloc);
-      RegisterHook *rh = &lib.get<RegisterHook>("RegisterMyHook");
+      boost::dll::shared_library *lib = new boost::dll::shared_library(libloc);
+      libraries.push_back(lib);
+      RegisterHook *rh = &lib->get<RegisterHook>("RegisterMyHook");
       plugins.push_back(rh);
       success = true;
     } catch (std::exception &e) {
@@ -41,6 +43,12 @@ class PluginManager {
   void registerHooks(Emulator &emu, HookManager &hm) {
     for (auto &p : plugins) {
       p->reg(emu, hm);
+    }
+  }
+
+  ~PluginManager() {
+    for (auto *lib : libraries) {
+      delete lib;
     }
   }
 };
