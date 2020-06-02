@@ -64,6 +64,7 @@ class StepInstructions : public HookCode {
          << "Commands:" << endl
          << "  s [repeat]    execute a single instruction 'repeat' times" << endl
          << "                  default = 1" << endl
+         << "  [none]        no/empty command, same as 's'" << endl
          << "  c [address]   execute untill instruction address 'address'"<< endl
          << "                  default run until interupted" << endl
          << "  r             dump the registers" << endl
