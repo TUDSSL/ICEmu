@@ -20,3 +20,4 @@ set(PLUGIN_LINK_OPTIONS
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/plugins)
 
 add_subdirectory(display_instructions_plugin)
+add_subdirectory(step_instructions_plugin)
