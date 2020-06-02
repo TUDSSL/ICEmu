@@ -59,6 +59,22 @@ class StepInstructions : public HookCode {
     continue_in_progress = false;
   }
 
+  void help() {
+    cout << "Plugin " << name << " usage:" << endl
+         << "Commands:" << endl
+         << "  s [repeat]    execute a single instruction 'repeat' times" << endl
+         << "                  default = 1" << endl
+         << "  c [address]   execute untill instruction address 'address'"<< endl
+         << "                  default run until interupted" << endl
+         << "  r             dump the registers" << endl
+         << "  quit          stop emulation" << endl
+         << "  help          show this message" << endl
+         << "Control:" << endl
+         << "  CTRL-C        if continue ('c') command is running halt execution," << endl
+         << "                  otherwise same as 'quit'" << endl
+         ;
+  }
+
  public:
   // Always execute
   StepInstructions(Emulator &emu) : HookCode(emu, "step_instructions") {
@@ -67,6 +83,8 @@ class StepInstructions : public HookCode {
     stop_plugin = false;
     continue_in_progress = false;
     signal(SIGINT, signal_handler);
+
+    help();
   }
 
   ~StepInstructions() {
@@ -95,10 +113,15 @@ class StepInstructions : public HookCode {
     const size_t match_address = 2;
 
     // Get a command
-    cout << printLeader();;
+    cout << printLeader();
     getline(cin, command);
 
     if (stop_plugin) {
+      return true;
+    }
+
+    if (command.length() == 0) {
+      cout << "\x1b[A";
       return true;
     }
 
