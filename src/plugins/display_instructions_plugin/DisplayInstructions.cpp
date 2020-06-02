@@ -20,13 +20,13 @@ using namespace icemu;
 
 class DebugPlugin : public HookCode {
  private:
-  std::string printName() {
-    return "[" + name + "]";
+  std::string printLeader() {
+    return "[instr]";
   }
 
  public:
   // Always execute
-  DebugPlugin(Emulator &emu) : HookCode(emu, "debug") {
+  DebugPlugin(Emulator &emu) : HookCode(emu, "display_instructions") {
   }
 
   ~DebugPlugin() {
@@ -38,19 +38,19 @@ class DebugPlugin : public HookCode {
 
     ok = getEmulator().readMemory(address, (char *)instruction, size);
     if (!ok) {
-      cerr << printName() << " failed to read memory for instruction at address " << address << endl;
+      cerr << printLeader() << " failed to read memory for instruction at address " << address << endl;
       return;
     }
     cs_insn *insn;
     size_t cnt = cs_disasm(*getEmulator().getCapstoneEngine(), instruction, size, address, 0, &insn);
     if (cnt == 0) {
-      cerr << printName() << " failed to disasemble instruction at address " << address << endl;
+      cerr << printLeader() << " failed to disasemble instruction at address " << address << endl;
       return;
     }
 
     // Display the actual instruction
     for (size_t i=0; i<cnt; i++) {
-      cout << printName() << " ";
+      cout << printLeader() << " ";
       printf("0x%08x: %s  %s", (armaddr_t)insn[i].address, insn[i].mnemonic, insn[i].op_str);
       cout << endl;
     }
