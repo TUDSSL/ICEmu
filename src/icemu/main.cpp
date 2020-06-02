@@ -23,7 +23,7 @@ namespace icemu {
 volatile atomic<bool> gStopEmulation;
 }
 
-static void signal_handler(int signal) {
+void main_signal_handler(int signal) {
   // A signal occured
   cout << "Captured signal: " << signal << endl;
   gStopEmulation = true;
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
   cout << "ICEmu ARM Emulator" << endl;
 
   // Setup signal handler
-  signal(SIGINT, signal_handler);
+  signal(SIGINT, main_signal_handler);
 
   ArgParse args(argc, argv);
   if (args.bad()) {
