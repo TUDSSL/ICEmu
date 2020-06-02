@@ -18,7 +18,7 @@
 using namespace std;
 using namespace icemu;
 
-class DebugPlugin : public HookCode {
+class DisplayInstructions : public HookCode {
  private:
   std::string printLeader() {
     return "[instr]";
@@ -26,10 +26,10 @@ class DebugPlugin : public HookCode {
 
  public:
   // Always execute
-  DebugPlugin(Emulator &emu) : HookCode(emu, "display_instructions") {
+  DisplayInstructions(Emulator &emu) : HookCode(emu, "display_instructions") {
   }
 
-  ~DebugPlugin() {
+  ~DisplayInstructions() {
   }
 
   void displayInstruction(armaddr_t address, armaddr_t size) {
@@ -66,7 +66,7 @@ class DebugPlugin : public HookCode {
 
 // Function that registers the hook
 static void registerMyCodeHook(Emulator &emu, HookManager &HM) {
-  HM.add(new DebugPlugin(emu));
+  HM.add(new DisplayInstructions(emu));
 }
 
 // Class that is used by ICEmu to finf the register function
