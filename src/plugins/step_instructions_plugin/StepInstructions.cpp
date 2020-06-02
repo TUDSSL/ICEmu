@@ -109,8 +109,10 @@ class StepInstructions : public HookCode {
 
     // Check what command
     if (matches[match_command] == "quit") {
-      getEmulator().stop();
-    } else if (matches[match_command] == "s") {
+      getEmulator().stop(name);
+    }
+
+    else if (matches[match_command] == "s") {
       if (matches[match_repeat].length() != 0) {
         size_t repeat = stol(matches[match_repeat]);
         if (repeat > 0) {
@@ -120,7 +122,9 @@ class StepInstructions : public HookCode {
           return false;
         }
       }
-    } else if (matches[match_command] == "c") {
+    }
+
+    else if (matches[match_command] == "c") {
       string address_str = matches[match_address];
       if (address_str.length() != 0) {
         armaddr_t until_address = (armaddr_t)strtol(address_str.c_str(), NULL, 0);
@@ -133,6 +137,12 @@ class StepInstructions : public HookCode {
         setStopAddress(0);
       }
       cout << "Continuing until address: " << stopaddress << endl;
+    }
+
+    else if (matches[match_command] == "r") {
+      cout << "Registers: " << endl;
+      getEmulator().getRegisters().dump(cout);
+      return false;
     }
 
     return true;
