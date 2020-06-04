@@ -20,6 +20,8 @@ typedef struct symbol {
   unsigned char bind;
   unsigned char type;
   unsigned char other;
+
+  armaddr_t getFuncAddr() const { return address & ~0x1; }
 } symbol_t;
 
 class Symbols {
