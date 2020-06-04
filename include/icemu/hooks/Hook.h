@@ -47,6 +47,13 @@ class Hook {
     high = addrhigh;
   }
 
+  explicit Hook(Emulator &emu, std::string hookname, armaddr_t addr) : emu_(emu) {
+    type = TYPE_RANGE;
+    name = hookname;
+    low = addr;
+    high = addr;
+  }
+
   explicit Hook(Emulator &emu, std::string hookname) : emu_(emu) {
     type = TYPE_ALL;
     name = hookname;
