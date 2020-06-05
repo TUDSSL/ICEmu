@@ -46,6 +46,7 @@ class MockClockfunc : public HookFunction {
   }
 
   ~MockClockfunc() {
+    delete hook_instr_cnt;
   }
 
   // Hook run
