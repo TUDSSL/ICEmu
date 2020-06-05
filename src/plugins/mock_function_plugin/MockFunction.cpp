@@ -15,7 +15,7 @@
 #include "icemu/hooks/HookCode.h"
 #include "icemu/hooks/HookManager.h"
 #include "icemu/hooks/RegisterHook.h"
-#include "icemu/emu/FunctionArgs.h"
+#include "icemu/emu/Function.h"
 
 
 using namespace std;
@@ -46,15 +46,21 @@ class MockFunction : public HookCode {
 
     //cout << "Registers:" << endl;
     //getEmulator().getRegisters().dump(cout);
-    FunctionArg<uint32_t> farg1;
+    Function::Argument<uint32_t> farg1;
     //farg1.parse = [&farg1](const char *virtregbuff) {
     //  std::cout << "Copy" << std::endl;
     //  memcpy((void *)&farg1.arg, virtregbuff, farg1.size);
     //};
-    FunctionArg<uint16_t> farg2;
-    FunctionArgs::parse(getEmulator().getRegisters(), farg1, farg2);
+    Function::Argument<uint16_t> farg2;
+    Function::Arguments::parse(getEmulator().getRegisters(), farg1, farg2);
 
     cout << "  Argument: " << farg1.arg << ", " << farg2.arg << endl;
+
+    Function::setReturn(getEmulator().getRegisters(), 42);
+
+    //Function::skip();
+    Registers &reg = getEmulator().getRegisters();
+    reg.set(Registers::PC, reg.get(Registers::LR));
   }
 };
 
