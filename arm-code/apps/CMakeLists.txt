@@ -1,3 +1,4 @@
 add_subdirectory(loop-and-return)
 add_subdirectory(loop-forever)
 add_subdirectory(call-simple)
+add_subdirectory(call-printf)
