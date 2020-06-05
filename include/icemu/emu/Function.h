@@ -23,9 +23,14 @@ namespace icemu {
 class Function {
  public:
   static void setReturn(Registers &reg, armaddr_t value) { reg.set(0, value); }
-
   static void skip(Registers &reg) {
     reg.set(Registers::PC, reg.get(Registers::LR));
+  }
+
+  // Special (rare) case
+  static void setReturn64(Registers &reg, uint64_t value) {
+    reg.set(0, value & ((1UL<<32)-1));
+    reg.set(1, value >> 32);
   }
 
   static void skip(Registers &reg, armaddr_t return_value) {
