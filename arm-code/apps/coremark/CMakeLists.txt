@@ -66,15 +66,17 @@ target_link_libraries(${PROJECT_NAME}
     m
     )
 
+get_target_property(MAIN_CFLAGS ${PROJECT_NAME} COMPILE_OPTIONS)
+string (REPLACE ";" " " MAIN_CFLAGS_STR "${MAIN_CFLAGS}")
+
 target_compile_definitions(${PROJECT_NAME}
   PUBLIC
   PERFORMANCE_RUN=1
   ITERATIONS=500
-  COMPILER_FLAGS="todo"
+  COMPILER_FLAGS="${MAIN_CFLAGS_STR}"
   )
 
 # Print size of binary after linking
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_SIZE} ${PROJECT_NAME}${OUTPUT_SUFFIX}
     )
-
