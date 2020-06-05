@@ -37,3 +37,6 @@ add_subdirectory(src/icemu)
 
 # Build the plugins
 add_subdirectory(src/plugins)
+
+# Build the examples (TODO: Make optional)
+add_subdirectory(example/plugin)
