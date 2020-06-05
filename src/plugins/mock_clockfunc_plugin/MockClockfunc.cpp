@@ -46,7 +46,6 @@ class MockClockfunc : public HookFunction {
   }
 
   ~MockClockfunc() {
-    delete hook_instr_cnt;
   }
 
   // Hook run
@@ -62,6 +61,7 @@ class MockClockfunc : public HookFunction {
 static void registerMyCodeHook(Emulator &emu, HookManager &HM) {
   auto mf = new MockClockfunc(emu, "clock");
   if (mf->getStatus() == Hook::STATUS_ERROR) {
+    delete mf->hook_instr_cnt;
     delete mf;
     return;
   }
