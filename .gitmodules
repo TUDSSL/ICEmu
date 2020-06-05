@@ -10,3 +10,6 @@
 [submodule "lib/ELFIO"]
 	path = lib/ELFIO
 	url = git@github.com:serge1/ELFIO.git
+[submodule "arm-code/apps/coremark/coremark"]
+	path = arm-code/apps/coremark/coremark
+	url = git@github.com:eembc/coremark.git
