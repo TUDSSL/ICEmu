@@ -17,6 +17,7 @@ file(GLOB SOURCES
     core_util.c
     icemu/core_portme.c
     icemu/printf.c
+    icemu/printfmap.c
     ${STARTUP_CODE}
     )
 
@@ -35,8 +36,8 @@ target_include_directories(${PROJECT_NAME}
 
 # Compiler options for this project
 target_compile_options(${PROJECT_NAME}
-    PUBLIC -mfpu=fpv4-sp-d16 -mfloat-abi=hard
-    PRIVATE -O0
+    PUBLIC -mfloat-abi=soft
+    PRIVATE -O3
     PRIVATE -g -gdwarf-3
     PRIVATE -Wall
     PRIVATE -std=c99
@@ -52,7 +53,7 @@ target_compile_options(${PROJECT_NAME}
 
 # Linker options for this project
 target_link_options(${PROJECT_NAME}
-    PUBLIC -mfpu=fpv4-sp-d16 -mfloat-abi=hard
+    PUBLIC -mfloat-abi=soft
     PRIVATE -nostartfiles -static
     PRIVATE -Wl,--gc-sections,--entry,Reset_Handler
     PRIVATE -Wl,-Map=${PROJECT_NAME}.map
@@ -68,9 +69,8 @@ target_link_libraries(${PROJECT_NAME}
 target_compile_definitions(${PROJECT_NAME}
   PUBLIC
   PERFORMANCE_RUN=1
-  ITERATIONS=1
+  ITERATIONS=500
   COMPILER_FLAGS="todo"
-  PRINTF_LONG_SUPPORT
   )
 
 # Print size of binary after linking

@@ -58,7 +58,7 @@ volatile ee_s32 seed5_volatile = 0;
 #define TIMER_RES_DIVIDER          1
 #define SAMPLE_TIME_IMPLEMENTATION 1
 //#define EE_TICKS_PER_SEC           (NSECS_PER_SEC / TIMER_RES_DIVIDER)
-#define EE_TICKS_PER_SEC           (10000000) // Lets pretend we run at 10MHz and a instruction is a cycle
+#define EE_TICKS_PER_SEC           (10000000UL) // Lets pretend we run at 10MHz and a instruction is a cycle
 
 
 // Hook this in the emulator and return instruction count
