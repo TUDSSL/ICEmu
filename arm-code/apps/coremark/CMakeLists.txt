@@ -10,11 +10,11 @@ project(coremark LANGUAGES C ASM)
 
 # List source files to be compiled
 file(GLOB SOURCES
-    core_list_join.c
-    core_main.c
-    core_matrix.c
-    core_state.c
-    core_util.c
+    coremark/core_list_join.c
+    coremark/core_main.c
+    coremark/core_matrix.c
+    coremark/core_state.c
+    coremark/core_util.c
     icemu/core_portme.c
     icemu/printf.c
     icemu/printfmap.c
@@ -29,7 +29,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ${OUTPUT_SUFFIX})
 
 target_include_directories(${PROJECT_NAME}
        PUBLIC
-       ./
+       ./coremark
        ./icemu/
      )
 
