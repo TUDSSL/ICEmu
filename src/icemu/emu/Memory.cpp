@@ -99,6 +99,10 @@ bool Memory::collect() {
     armaddr_t seg_origin = pseg->get_physical_address();
     armaddr_t seg_length = pseg->get_file_size();
 
+    if (seg_length == 0) {
+      continue;
+    }
+
 #if 0
         cout << "Mapping Segment: " << i
             << " Origin: "
