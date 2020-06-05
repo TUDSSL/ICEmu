@@ -29,7 +29,7 @@ Original Author: Shay Gal-on
         Define to 1 if the platform supports floating point.
 */
 #ifndef HAS_FLOAT
-#define HAS_FLOAT 1
+#define HAS_FLOAT 0
 #endif
 /* Configuration : HAS_TIME_H
         Define to 1 if platform has the time.h header file,
@@ -43,13 +43,13 @@ Original Author: Shay Gal-on
         and implementation of functions thereof.
 */
 #ifndef USE_CLOCK
-#define USE_CLOCK 1
+#define USE_CLOCK 0
 #endif
 /* Configuration : HAS_STDIO
         Define to 1 if the platform has stdio.h.
 */
 #ifndef HAS_STDIO
-#define HAS_STDIO 1
+#define HAS_STDIO 0
 #endif
 /* Configuration : HAS_PRINTF
         Define to 1 if the platform has stdio.h and implements the printf
@@ -57,13 +57,16 @@ Original Author: Shay Gal-on
 */
 #ifndef HAS_PRINTF
 #define HAS_PRINTF 1
+#include "printf.h"
+#define ee_printf printf
 #endif
 
 /* Configuration : CORE_TICKS
         Define type of return from the timing functions.
  */
-#include <time.h>
-typedef clock_t CORE_TICKS;
+//#include <time.h>
+#include <stdint.h>
+typedef uint32_t CORE_TICKS;
 
 /* Definitions : COMPILER_VERSION, COMPILER_FLAGS, MEM_LOCATION
         Initialize these strings per platform
@@ -91,6 +94,7 @@ typedef clock_t CORE_TICKS;
         ee_ptr_int needs to be the data type used to hold pointers, otherwise
    coremark may fail!!!
 */
+#include <stddef.h>
 typedef signed short   ee_s16;
 typedef unsigned short ee_u16;
 typedef signed int     ee_s32;
