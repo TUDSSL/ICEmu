@@ -1,8 +1,9 @@
 #ifndef ICEMU_HOOKS_HOOKMANAGER_H_
 #define ICEMU_HOOKS_HOOKMANAGER_H_
 
-#include <set>
+#include <list>
 #include <iostream>
+#include <functional>
 
 #include "icemu/emu/types.h"
 #include "icemu/hooks/Hook.h"
@@ -18,8 +19,8 @@ class HookManager {
   Hooks<HookMemory> hooks_memory_;
 
   // Used for easy cleanup
-  std::set<Hook *> hooks_all;
-  inline void track_hook(Hook *h) { hooks_all.insert(h); }
+  std::list<Hook *> hooks_all;
+  inline void track_hook(Hook *h) { hooks_all.push_back(h); }
 
  public:
   typedef std::function<void(Emulator &emu, HookManager &hb)> ExtensionHookFn;
@@ -27,9 +28,9 @@ class HookManager {
   HookManager() = default;
 
   ~HookManager() {
-    for (auto h : hooks_all) {
-      //std::cout << "Deleting: " << h->name << " addr: " << h << std::endl;
-      delete h;
+    for (std::list<Hook *>::reverse_iterator i = hooks_all.rbegin(); i != hooks_all.rend(); ++i) {
+      //std::cout << "Deleting: " << (*i)->name << std::endl;
+      delete *i;
     }
   }
 
