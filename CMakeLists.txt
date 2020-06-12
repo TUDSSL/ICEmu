@@ -40,3 +40,10 @@ add_subdirectory(src/plugins)
 
 # Build the examples (TODO: Make optional)
 add_subdirectory(example/plugin)
+
+# Build the ARM code
+add_custom_target(arm
+    COMMAND bash "-c" ${CMAKE_SOURCE_DIR}/"arm-code/build-arm.sh"
+    COMMENT "Build ARM code"
+    VERBATIM
+)
