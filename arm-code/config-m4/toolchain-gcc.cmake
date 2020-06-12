@@ -9,7 +9,7 @@ set(CONFIG_DIR "${PROJECT_SOURCE_DIR}/config-m4")
 
 set(OUTPUT_SUFFIX ".elf" CACHE STRING "")
 set(LINKER_SCRIPT "${CONFIG_DIR}/linkerscript.ld")
-set(STARTUP_CODE "${CONFIG_DIR}/startup_gcc.c")
+set(STARTUP_CODE "${CONFIG_DIR}/startup.c")
 
 set(CMAKE_C_COMPILER    "arm-none-eabi-gcc")
 set(CMAKE_CXX_COMPILER  "arm-none-eabi-g++")

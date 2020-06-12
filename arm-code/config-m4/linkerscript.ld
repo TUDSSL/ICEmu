@@ -76,4 +76,13 @@ SECTIONS
     } > NVMEM
 
     .ARM.attributes 0 : { *(.ARM.attributes) }
+
+    /* ## Discarded sections */
+    /DISCARD/ :
+    {
+        /* Unused exception related info that only wastes space */
+        *(.ARM.exidx);
+        *(.ARM.exidx.*);
+        *(.ARM.extab.*);
+    }
 }

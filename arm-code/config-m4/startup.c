@@ -289,7 +289,8 @@ Reset_Handler(void)
     //
     // Call the application's entry point.
     //
-    main();
+    //main();
+    __asm("    bl   main\n");
 
     //
     // If main returns then execute a break point instruction
