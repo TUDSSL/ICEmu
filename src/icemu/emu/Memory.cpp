@@ -216,3 +216,12 @@ memseg_t *Memory::find(string memseg_name) {
   }
   return NULL;
 }
+
+memseg_t *Memory::find(armaddr_t address) {
+  for (auto &ms : memory) {
+    if (address >= ms.origin && address < (ms.origin + ms.length)) {
+      return &ms;
+    }
+  }
+  return NULL;
+}
