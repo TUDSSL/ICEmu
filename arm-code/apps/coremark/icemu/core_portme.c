@@ -52,7 +52,7 @@ volatile ee_s32 seed5_volatile = 0;
    increase this value.
         */
 //#define NSECS_PER_SEC              CLOCKS_PER_SEC
-#define CORETIMETYPE               uint64_t
+#define CORETIMETYPE               volatile uint64_t
 #define GETMYTIME(_t)              (*_t = clock())
 #define MYTIMEDIFF(fin, ini)       ((fin) - (ini))
 #define TIMER_RES_DIVIDER          1
@@ -62,8 +62,16 @@ volatile ee_s32 seed5_volatile = 0;
 
 
 // Hook this in the emulator and return instruction count
-__attribute__((noinline)) CORETIMETYPE clock(void) {
-  return 42;
+#if defined(__clang__)
+#define NO_OPT __attribute__((optnone, noinline))
+#else
+#define NO_OPT __attribute__((optimize("O0"), noinline))
+#endif
+
+CORETIMETYPE dummy;
+NO_OPT
+CORETIMETYPE clock(void) {
+  return dummy;
 }
 
 
