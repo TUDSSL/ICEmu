@@ -54,7 +54,6 @@ target_compile_options(${PROJECT_NAME}
 # Linker options for this project
 target_link_options(${PROJECT_NAME}
     PUBLIC -mfloat-abi=soft
-    PRIVATE -nostartfiles -static
     PRIVATE -Wl,--gc-sections,--entry,Reset_Handler
     PRIVATE -Wl,-Map=${PROJECT_NAME}.map
     PRIVATE -T ${LINKER_SCRIPT}
