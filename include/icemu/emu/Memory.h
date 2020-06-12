@@ -67,6 +67,7 @@ class Memory {
 
   void populate();
   memseg_t *find(std::string memseg_name);
+  memseg_t *find(armaddr_t address);
 
   Symbols &getSymbols() { return symbols; }
 
