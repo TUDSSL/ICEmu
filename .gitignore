@@ -1,5 +1,6 @@
 # CMake build directories
 build/
+build-*/
 
 # Editor related files
 [._]*.s[a-v][a-z]
