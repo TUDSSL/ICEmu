@@ -41,9 +41,23 @@ add_subdirectory(src/plugins)
 # Build the examples (TODO: Make optional)
 add_subdirectory(example/plugin)
 
-# Build the ARM code
+# Build ARM code using GCC
+add_custom_target(arm-gcc
+    COMMAND bash "-c" ${CMAKE_SOURCE_DIR}/"arm-code/build-gcc.sh"
+    COMMENT "Build ARM code using GCC"
+    VERBATIM
+)
+
+# Build ARM code using Clang
+add_custom_target(arm-clang
+    COMMAND bash "-c" ${CMAKE_SOURCE_DIR}/"arm-code/build-clang.sh"
+    COMMENT "Build ARM code using Clang+LLVM"
+    VERBATIM
+)
+
+# Build the ARM code GCC and Clang
 add_custom_target(arm
-    COMMAND bash "-c" ${CMAKE_SOURCE_DIR}/"arm-code/build-arm.sh"
     COMMENT "Build ARM code"
+    DEPENDS arm-gcc arm-clang
     VERBATIM
 )

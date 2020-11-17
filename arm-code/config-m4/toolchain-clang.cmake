@@ -3,6 +3,9 @@
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 
+# libgcc is required to compile with clang/llvm for now
+set(CLANG_LIBGCC_VERSION "10.2.0")
+
 set(CONFIG_DIR "${PROJECT_SOURCE_DIR}/config-m4")
 
 set(OUTPUT_SUFFIX ".elf" CACHE STRING "")
@@ -50,7 +53,7 @@ add_link_options(
     -Wl,-lnosys
     -L/usr/arm-none-eabi/lib/thumb/v7e-m/nofp
 
+    -L/usr/lib/gcc/arm-none-eabi/${CLANG_LIBGCC_VERSION}/thumb/v7e-m/nofp/
     -Wl,-lgcc
-    -L/usr/lib/gcc/arm-none-eabi/10.1.0/thumb/v7e-m/nofp/
     )
 
