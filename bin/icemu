@@ -1,0 +1,163 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+ICEmu="$DIR/../build/ICEmu"
+
+DEFAULT_CONFIG="cfg_armv7.json"
+
+## Plugin directories
+PLUGIN_DIR+=(".")
+
+# Read the environment variable ICEMU_PLUGIN_PATH
+IFS=':'
+read -ra PLUGIN_DIR_ENV <<< "$ICEMU_PLUGIN_PATH"
+IFS=' '
+
+if [ ! ${#PLUGIN_DIR_ENV[@]} -eq 0 ]; then
+    PLUGIN_DIR+=("${PLUGIN_DIR_ENV[@]}")
+fi
+
+# Array with plugin directories
+PLUGIN_DIR+=("$DIR/../build/example-plugins")
+PLUGIN_DIR+=("$DIR/../build/plugins")
+
+
+## Config directories
+CONFIG_DIR+=(".")
+
+# Read the environment variable ICEMU_CONFIG_PATH
+IFS=':'
+read -ra CONFIG_DIR_ENV <<< "$ICEMU_CONFIG_PATH"
+IFS=' '
+
+if [ ! ${#CONFIG_DIR_ENV[@]} -eq 0 ]; then
+    CONFIG_DIR+=("${CONFIG_DIR_ENV[@]}")
+fi
+
+CONFIG_DIR+=("$DIR/../example/cfg")
+
+function findfile() {
+    local ffile=""
+    local fname="$1"
+    shift
+    local arr=("$@")
+    for pd in "${arr[@]}"; do
+        if [ -f "$pd/$fname" ]; then
+            local ffile="$pd/$fname"
+            break
+        fi
+    done
+
+    if [ -z $ffile ]; then
+        local ffile="$fname"
+    fi
+
+    echo "$ffile"
+}
+
+function showfiles() {
+    local fname="$1"
+    shift
+    local arr=("$@")
+    for pd in "${arr[@]}"; do
+        find $pd -type f -name "$fname" -exec basename {} \;
+    done
+}
+
+config_provided=false
+
+while (( "$#" )); do
+    case $1 in
+        -p|--plugin)
+            #echo "found plugin arg"
+            pass_args+="$1 "
+            plugin="$(findfile "$2" "${PLUGIN_DIR[@]}")"
+            pass_args+="$plugin "
+            shift
+            shift
+            ;;
+        -c|--config-file)
+            #echo "found config arg"
+            pass_args+="$1 "
+            config="$(findfile "$2" "${CONFIG_DIR[@]}")"
+            pass_args+="$config "
+            shift
+            shift
+            config_provided=true
+            ;;
+        -h|--help)
+            echo "ICEmu wrapper scipt"
+            echo "Use --help-wrapper to get information about this helper wrapper"
+            echo
+            pass_args+="$1 "
+            shift
+            ;;
+        --help-wrapper)
+            echo "ICEmu wrapper script options:"
+            echo "  --help-wrapper        produce this wrapper help message"
+            echo "  --wrapper-info        print wrapper info and options"
+            echo "  --wrapper-plugins     print all found plugins"
+            echo "  --wrapper-plugins     print all found config files"
+            shift
+            exit 1
+            ;;
+        --wrapper-plugins)
+            # Dump all plugins
+            echo "Plugins:"
+            showfiles "*.so" "${PLUGIN_DIR[@]}"
+            shift
+            exit 1
+            ;;
+        --wrapper-configs)
+            # Dump all configuration files
+            echo "Configuration files:"
+            showfiles "*.json" "${CONFIG_DIR[@]}"
+            shift
+            exit 1
+            ;;
+        --wrapper-info)
+            # Environment variable info
+            echo "Use the environment variable ICEMU_PLUGIN_PATH to add plugin search directories (separated by ':')"
+            echo "Use the environment variable ICEMU_CONFIG_PATH to add config search directories (separated by ':')"
+            echo
+
+            # Plugin search directories
+            echo "Plugin search directories:"
+            for p in "${PLUGIN_DIR[@]}"; do
+                echo "  $p"
+            done
+            echo
+
+            # Config search directories
+            echo "Config search directories:"
+            for c in "${CONFIG_DIR[@]}"; do
+                echo "  $c"
+            done
+            echo
+
+            # Default config name:
+            config="$(findfile "$DEFAULT_CONFIG" "${CONFIG_DIR[@]}")"
+            echo "Default configuration file: $config"
+            shift
+            exit 1
+            ;;
+        *)
+            #echo "found passtrough"
+            pass_args+="$1 "
+            shift
+            ;;
+    esac
+done
+
+# Check if a config is provided, otherwise
+if [ "$config_provided" = false ]; then
+    # Provide the default config (config is required)
+    config="$(findfile "$DEFAULT_CONFIG" "${CONFIG_DIR[@]}")"
+    pass_args="-c $config  $pass_args"
+fi
+
+cmd="$ICEmu $pass_args"
+echo "$cmd"
+echo
+$cmd
