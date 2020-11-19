@@ -24,11 +24,12 @@ ostream &operator<<(ostream &os, const vector<T> &v) {
 bool ArgParse::parse(int argc, char **argv) {
   try {
     po::options_description desc("Allowed options");
-    desc.add_options()("help", "produce help message")(
+    desc.add_options()(
+        "help,h", "produce help message")(
         "config-file,c", po::value< vector<string> >()->required(), "json config file")(
         "elf-file,e", po::value<string>(), "elf input file")(
         "plugin,p", po::value< vector<string> >(), "load plugin (can be passed multiple times)")(
-        "dump-hex,h", "dump hex file of the memory regions at completion")(
+        "dump-hex,x", "dump hex file of the memory regions at completion")(
         "dump-bin,b", "dump bin file of the memory regions at completion")(
         "dump-reg,r", "dump file with the register values at completion")(
         "dump-prefix", po::value<string>()->default_value("dump-"),
@@ -42,7 +43,14 @@ bool ArgParse::parse(int argc, char **argv) {
         vm);
 
     if (vm.count("help")) {
-      cout << "Usage: options_description [options]\n";
+      cout << "Usage: options_description [options] program.elf\n";
+      cout << desc;
+      return false;
+    }
+
+    if (!vm.count("elf-file")) {
+      cout << "\nError: Missing elf program file\n\n";
+      cout << "Usage: options_description [options] program.elf\n";
       cout << desc;
       return false;
     }

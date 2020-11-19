@@ -85,7 +85,7 @@ bool Memory::collect() {
 
   /* Get the corresponding memory segments to fill/load from the elf file */
   if (!elf_reader.load(elf_file_)) {
-    cerr << "Error reading elf file" << elf_file_ << endl;
+    cerr << "Error reading elf file " << elf_file_ << endl;
     return false;
   }
 
