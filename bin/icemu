@@ -98,7 +98,7 @@ while (( "$#" )); do
             echo "  --help-wrapper        produce this wrapper help message"
             echo "  --wrapper-info        print wrapper info and options"
             echo "  --wrapper-plugins     print all found plugins"
-            echo "  --wrapper-plugins     print all found config files"
+            echo "  --wrapper-configs     print all found config files"
             shift
             exit 1
             ;;
