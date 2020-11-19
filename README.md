@@ -36,7 +36,7 @@ All options that do not relate to the wrapper (listed below) are passed directly
 to the ICEmu binary (above). The wrapper helps you by:
 * Searching default plugin directories, so no full path is needed.
 * Searching default config directories, so no full path is needed.
-* Selecting a default configuration if no configuration is required.
+* Selecting a default configuration if no configuration is provided.
 
 run `icemu --wrapper-info` for more details and check the wrapper
 [README](bin/README.md).
