@@ -12,7 +12,7 @@ Intermittent Computing Emulator
    correspond to that of the device the .elf is created for).
 
 ## Usage
-You can either use the ICEmu binary direcyly, or use the wrapper script
+You can either use the ICEmu binary directly, or use the wrapper script
 [`bin/icemu`](bin/) to make running it easier.
 
 
@@ -34,12 +34,12 @@ Allowed options:
 ### Using the icemu wrapper script
 All options that do not relate to the wrapper (listed below) are passed directly
 to the ICEmu binary (above). The wrapper helps you by:
-* It searches default plugin directories, so no full path is needed
-* It searches default config directories, so no full path is needed
-* It uses a default configuration if no configuration is required
+* Searching default plugin directories, so no full path is needed.
+* Searching default config directories, so no full path is needed.
+* Selecting a default configuration if no configuration is required.
 
 run `icemu --wrapper-info` for more details and check the wrapper
-[README](bin/README.md)
+[README](bin/README.md).
 
 ```
 Usage: icemu [options] program.elf
