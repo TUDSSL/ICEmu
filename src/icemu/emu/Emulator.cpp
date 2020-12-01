@@ -42,20 +42,7 @@ bool Emulator::run() {
     return false;
   }
 
-  // Multiple TODO for this one:
-  //  - Make the symbol configurable
-  //  - Make the memory mapping such that it can cope with the vector table (at
-  //    address 0x0 (currently unmapped, not sure how to infer stuff like this
-  //    generically)
-  //  - Then fix (read restore) the `startup_gcc.c` code in a way that sets the
-  //    SP without having to manually specify it.
-  try {
-    armaddr_t sp = getMemory().symbols.get("_estack")->address;
-    uc_reg_write(uc, UC_ARM_REG_SP, &sp);
-  } catch (const std::out_of_range &e) {
-    cerr << "Failed to find the address of symbol: _estack" << endl;
-    return false;
-  }
+  reset();
 
   const uint64_t emu_start_addr = getMemory().entrypoint | 1;
   const uint64_t emu_stop_addr = 0; // Address 0 should never be executed, so run forever
@@ -66,6 +53,27 @@ bool Emulator::run() {
   }
 
   return true;
+}
+
+void Emulator::reset() {
+  const uint64_t emu_start_addr = getMemory().entrypoint | 1;
+  const uint64_t regset = 0;
+
+  uc_reg_write(uc, UC_ARM_REG_R0, &regset);
+  uc_reg_write(uc, UC_ARM_REG_R1, &regset);
+  uc_reg_write(uc, UC_ARM_REG_R2, &regset);
+  uc_reg_write(uc, UC_ARM_REG_R3, &regset);
+  uc_reg_write(uc, UC_ARM_REG_R4, &regset);
+  uc_reg_write(uc, UC_ARM_REG_R5, &regset);
+  uc_reg_write(uc, UC_ARM_REG_R6, &regset);
+  uc_reg_write(uc, UC_ARM_REG_R7, &regset);
+  uc_reg_write(uc, UC_ARM_REG_R8, &regset);
+  uc_reg_write(uc, UC_ARM_REG_R9, &regset);
+  uc_reg_write(uc, UC_ARM_REG_R10, &regset);
+  uc_reg_write(uc, UC_ARM_REG_R11, &regset);
+  uc_reg_write(uc, UC_ARM_REG_R12, &regset);
+
+  uc_reg_write(uc, UC_ARM_REG_PC, &emu_start_addr);
 }
 
 static void hook_code_cb(uc_engine *uc, uint64_t address, uint32_t size, void *user_data) {
