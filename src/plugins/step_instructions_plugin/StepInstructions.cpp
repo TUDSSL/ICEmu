@@ -106,12 +106,13 @@ class StepInstructions : public HookCode {
 
 
     string command;
-    regex rgx("\\s*([a-zA-Z]+)\\s*(.*)");
+    regex rgx("\\s*([a-zA-Z]+)\\s*([^\\s]*)\\s*([^\\s]*)");
     smatch matches;
     // Match complete = 0; command = 1; repeat = 2
     const size_t match_command = 1;
     const size_t match_repeat = 2;
     const size_t match_address = 2;
+		const size_t match_length = 3;
 
     // Get a command
     cout << printLeader();
@@ -169,7 +170,51 @@ class StepInstructions : public HookCode {
       return false;
     }
 
-    return true;
+		else if (matches[match_command] == "m") {
+      armaddr_t address, length;
+      string address_str = matches[match_address];
+      string length_str = matches[match_length];
+      if (address_str.length() == 0) {
+        cout << "Please enter a valid memory address" << endl;
+        return false;
+      }
+
+      address = (armaddr_t)strtol(address_str.c_str(), NULL, 0);
+      length = (armaddr_t)strtol(length_str.c_str(), NULL, 0);
+
+      if (length == 0) {
+        cout << "Please enter a valid length to read" << endl;
+        return false;
+      }
+      // Print the memory
+      char *print_memory = new char [length];
+      bool suc = getEmulator().readMemory(address, print_memory, length);
+      if (suc == false) {
+        cout << "Failed to read memory" << endl;
+        delete[] print_memory;
+        return false;
+      }
+      std::ios_base::fmtflags f(cout.flags());
+      if (length%4 == 0) {
+        for (armaddr_t i=0; i<length; i+=4) {
+          uint32_t b0, b1, b2, b3;
+          b0 = (unsigned char)print_memory[i];
+          b1 = (unsigned char)print_memory[i+1];
+          b2 = (unsigned char)print_memory[i+2];
+          b3 = (unsigned char)print_memory[i+3];
+          uint32_t memval = ((b3 << 24)&0xFF000000) | ((b2 << 16)&0xFF0000) | ((b1 << 8)&0xFF00) | (b0&0xFF);
+          cout << hex << address+i << ":\t" << hex << memval << endl;
+        }
+      } else {
+        for (armaddr_t i=0; i<length; i++) {
+          cout << hex << address+i << ":\t" << hex << (unsigned int)print_memory[i] << endl;
+        }
+      }
+      cout.flags(f);
+      delete[] print_memory;
+    }
+
+    return false;
   }
 
   // Hook run
