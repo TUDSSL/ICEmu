@@ -196,6 +196,7 @@ class HookIntermittency : public HookMemory {
   bool verbose = false;
   bool ignore_rwmem = true;
 
+  uint64_t power_failure_count = 0;
   bool power_failure_on_read = false;
   bool power_failure_on_rwmem = false;
 
@@ -214,8 +215,6 @@ class HookIntermittency : public HookMemory {
   CheckpointRegion checkpointRegion;
 
   WarDetector warDetector;
-  //list<tuple<MemAccessState, MemAccessState>> warViolations;
-  //unordered_set<WarViolation, WarViolationHash> warViolations;
   list<WarViolation> warViolations;
 
   HookIntermittency(Emulator &emu) : HookMemory(emu, "intermittency") {
@@ -226,6 +225,7 @@ class HookIntermittency : public HookMemory {
   ~HookIntermittency() {
     printCheckpointRegions();
     printWarViolations();
+    cout << "Emulated " << power_failure_count << " power failures" << endl;
   }
 
   void resetInstructionTracker() {
@@ -263,6 +263,8 @@ class HookIntermittency : public HookMemory {
     resetInstructionTracker();
 
     checkpointRegion.last_instruction = istate;
+
+    power_failure_count++;
 
     return true;
   }
