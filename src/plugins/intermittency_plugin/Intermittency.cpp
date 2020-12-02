@@ -45,12 +45,13 @@ struct InstructionState {
   armaddr_t mem_address;
   armaddr_t mem_value;
   armaddr_t mem_size;
+
+  bool operator==(const InstructionState &is) const {
+    return this->pc == is.pc && this->mem_address == is.mem_address &&
+           this->mem_value == is.mem_value && this->mem_size && is.mem_size;
+  }
 };
 
-bool operator==(const InstructionState &lhs, const InstructionState &rhs) {
-  return lhs.pc == rhs.pc && lhs.mem_address == rhs.mem_address &&
-      lhs.mem_value == rhs.mem_value && lhs.mem_size && rhs.mem_size;
-}
 std::ostream& operator<<(std::ostream &o, const InstructionState &is){
   ios_base::fmtflags f(cout.flags());
 
@@ -66,12 +67,18 @@ struct CheckpointRegion {
   InstructionState last_instruction;            // The last instruction before the reset
   InstructionState first_changed_instruction;   // The fist instruction that's different
   InstructionState original_instruction;        // The previous state of the changed instruction
+
+  bool operator==(const CheckpointRegion& cpr) const{
+    return (this->last_instruction.pc == cpr.last_instruction.pc &&
+            this->first_changed_instruction.pc == cpr.first_changed_instruction.pc &&
+            this->original_instruction.pc == cpr.original_instruction.pc);
+  }
 };
 std::ostream& operator<<(std::ostream &o, const CheckpointRegion &cpr){
   ios_base::fmtflags f(cout.flags());
   cout << hex << "power failure at 0x" << cpr.last_instruction.pc
        << " [first change at 0x" << cpr.first_changed_instruction.pc
-       << " was 0x" << cpr.original_instruction.pc << "]";
+       << " was at 0x" << cpr.original_instruction.pc << "]";
   cout.flags(f);
   return o;
 }
@@ -193,6 +200,11 @@ class HookIntermittency : public HookMemory {
   uint64_t redo_instruction_count = 0;
   uint64_t different_execution_count = 0;
 
+  bool detect_no_forward_progess = true;
+  uint64_t same_pc_count = 0;
+  uint64_t max_same_pc_count = 20; // number of allowed re-executions without forward progress
+  bool no_forward_progress = false;
+
   bool verbose = false;
   bool ignore_rwmem = true;
 
@@ -226,6 +238,9 @@ class HookIntermittency : public HookMemory {
     printCheckpointRegions();
     printWarViolations();
     cout << "Emulated " << power_failure_count << " power failures" << endl;
+    if (no_forward_progress) {
+      cout << "Aborted emulation due to a lack of foward progress!" << endl;
+    }
   }
 
   void resetInstructionTracker() {
@@ -235,7 +250,6 @@ class HookIntermittency : public HookMemory {
   bool powerFailure(InstructionState &istate, hook_arg_t *arg) {
 
     // Check if we want to have a power failure
-
     if (power_failure_on_rwmem == false) {
       auto addr_mem = getEmulator().getMemory().find(istate.mem_address);
       if (addr_mem != nullptr && addr_mem->name == "RWMEM") {
@@ -285,7 +299,7 @@ class HookIntermittency : public HookMemory {
     }
   }
 
-  void detectWar(InstructionState &istate, hook_arg_t *arg) {
+  bool detectWar(InstructionState &istate, hook_arg_t *arg) {
     // Ignore stack
     if (ignore_rwmem) {
       auto rwmem = getEmulator().getMemory().find("RWMEM");
@@ -293,7 +307,7 @@ class HookIntermittency : public HookMemory {
         if (istate.mem_address >= rwmem->origin &&
             istate.mem_address < (rwmem->origin + rwmem->length)) {
           // Skip the memory in RWMEM
-          return;
+          return false;
         }
       }
     }
@@ -319,7 +333,9 @@ class HookIntermittency : public HookMemory {
       cout << war << endl;
       // getchar();
 #endif
+      return true;
     }
+    return false;
   }
 
   void run(hook_arg_t *arg) {
@@ -374,7 +390,29 @@ class HookIntermittency : public HookMemory {
       // Add the checkpointregion
       checkpointRegion.first_changed_instruction = istate;
       checkpointRegion.original_instruction = *instructionOrderIt;
-      checkpointRegions.push_back(checkpointRegion);
+
+      // Add the checkpoint region if it does not already exist
+      auto cpdup = find(checkpointRegions.begin(), checkpointRegions.end(), checkpointRegion);
+      if (cpdup == checkpointRegions.end()) {
+        checkpointRegions.push_back(checkpointRegion);
+      }
+
+      if (detect_no_forward_progess) {
+        // If the instruction repeated at the same PC x times, with different
+        // memory r/w address and/or value, then we detected a state where NO
+        // forward progress is made and we stop the emulation
+        if (instructionOrderIt->pc == istate.pc) {
+          same_pc_count++;
+        } else {
+          same_pc_count = 0;
+        }
+        if (same_pc_count >= max_same_pc_count) {
+          no_forward_progress = true;
+          cout << getLeader() << "No forward progress after " << same_pc_count
+               << " tries at " << istate << endl;
+          getEmulator().stop(name + " plugin detected no foward progress");
+        }
+      }
 
       // Clear the tracker
       while (instructionOrderIt != instructionOrder.end()) {
