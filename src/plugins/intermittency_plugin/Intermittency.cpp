@@ -107,6 +107,19 @@ struct WarViolation {
             this->write.value == t.write.value && this->write.pc == t.write.pc);
   }
 };
+std::ostream& operator<<(std::ostream &o, const WarViolation &war){
+  auto vread = war.read;
+  auto vwrite = war.write;
+
+  ios_base::fmtflags f(cout.flags());
+  cout << hex;
+  cout << "Write at: 0x" << vwrite.pc << " to address: 0x"
+      << vwrite.address << " with value: 0x" << vwrite.value;
+  cout << " after Read at: 0x" << vread.pc << " to address: 0x"
+      << vread.address << " with value: 0x" << vread.value;
+  cout.flags(f);
+  return o;
+}
 
 class WarDetector {
  private:
@@ -176,14 +189,15 @@ class WarDetector {
 // TODO: Need a way to get information from other hooks
 class HookIntermittency : public HookMemory {
  private:
-  int new_instructions_after_reset = 0;
-
   uint64_t new_instructions_count = 0;
   uint64_t redo_instruction_count = 0;
   uint64_t different_execution_count = 0;
 
   bool verbose = false;
   bool ignore_rwmem = true;
+
+  bool power_failure_on_read = false;
+  bool power_failure_on_rwmem = false;
 
   std::string getLeader() {
     return "[" + name + "] ";
@@ -218,16 +232,28 @@ class HookIntermittency : public HookMemory {
     instructionOrderIt = instructionOrder.begin();
   }
 
-  void powerFailure() {
-    if (verbose)
-      cout << getLeader() << "Power failure" << endl;
+  bool powerFailure(InstructionState &istate, hook_arg_t *arg) {
+
+    // Check if we want to have a power failure
+
+    if (power_failure_on_rwmem == false) {
+      auto addr_mem = getEmulator().getMemory().find(istate.mem_address);
+      if (addr_mem != nullptr && addr_mem->name == "RWMEM") {
+        return false;
+      }
+    }
+
+    if (power_failure_on_read == false && arg->mem_type == MEM_READ) {
+      return false;
+    }
+
+    // Start a power failure
 
     // Reset the WAR detection
     warDetector.reset();
 
-    Emulator &emu = getEmulator();
-
     // Clear the volatile memory
+    Emulator &emu = getEmulator();
     auto *vmem = emu.getMemory().find("RWMEM");
     memset(vmem->data, 0, vmem->length); // Clear the volatile memory
 
@@ -235,7 +261,10 @@ class HookIntermittency : public HookMemory {
     emu.reset();
 
     resetInstructionTracker();
-    new_instructions_after_reset = 0;
+
+    checkpointRegion.last_instruction = istate;
+
+    return true;
   }
 
   void printCheckpointRegions() {
@@ -249,16 +278,7 @@ class HookIntermittency : public HookMemory {
 
       cout << "WAR violation(s) found!" << endl;
       for (const auto &war : warViolations) {
-        auto vread = war.read; //get<0>(war);
-        auto vwrite = war.write; //get<1>(war);
-
-        ios_base::fmtflags f(cout.flags());
-        cout << hex;
-        cout << "Write at: 0x" << vwrite.pc << " to address: 0x"
-             << vwrite.address << " with value: 0x" << vwrite.value;
-        cout << " after Read at: 0x" << vread.pc << " to address: 0x"
-             << vread.address << " with value: 0x" << vread.value << endl;
-        cout.flags(f);
+        cout << war << endl;
       }
     }
   }
@@ -292,14 +312,10 @@ class HookIntermittency : public HookMemory {
         warViolations.push_back(war);
       }
       warDetector.clearWar();
-      // getchar();
-
 #if 0
       cout << "WAR: ";
-      cout << "Write at: 0x" << vwrite.pc << " to address: 0x" << vwrite.address
-           << " with value: 0x" << vwrite.value;
-      cout << " after Read at: 0x" << vread.pc << " to address: 0x"
-           << vread.address << " with value: 0x" << vread.value << endl;
+      cout << war << endl;
+      // getchar();
 #endif
     }
   }
@@ -320,21 +336,6 @@ class HookIntermittency : public HookMemory {
     //
     detectWar(istate, arg);
 
-#if 0
-    if (arg->address == 0x1005ffd0) {
-      cout << "hit";
-      if (arg->mem_type == MEM_WRITE) {
-        cout << " write";
-      }
-      else {
-        cout << " read";
-      }
-      cout << endl;
-      cout << istate << endl;
-      getchar();
-    }
-#endif
-
     //
     // Power failures
     //
@@ -346,11 +347,11 @@ class HookIntermittency : public HookMemory {
       if (verbose)
         cout << getLeader() << "new instruction " << istate << endl;
 
-      ++new_instructions_after_reset;
-      if (new_instructions_after_reset == 1) {
-        checkpointRegion.last_instruction = istate;
-        powerFailure();
+      bool pf = powerFailure(istate, arg);
+      if (pf == true) {
+        if (verbose) cout << "Power failure" << endl;
       }
+
     } else if (istate == *instructionOrderIt) {
       // re-execution is the same
       ++redo_instruction_count;
