@@ -214,7 +214,7 @@ memseg_t *Memory::find(string memseg_name) {
       return &ms;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 memseg_t *Memory::find(armaddr_t address) {
@@ -223,5 +223,5 @@ memseg_t *Memory::find(armaddr_t address) {
       return &ms;
     }
   }
-  return NULL;
+  return nullptr;
 }
