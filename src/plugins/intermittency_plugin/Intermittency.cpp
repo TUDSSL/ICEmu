@@ -11,6 +11,7 @@
 #include <list>
 #include <unordered_set>
 #include <tuple>
+#include <algorithm>
 
 #include "icemu/emu/Emulator.h"
 #include "icemu/hooks/HookFunction.h"
@@ -104,14 +105,6 @@ struct WarViolation {
             this->read.value == t.read.value && this->read.pc == t.read.pc &&
             this->write.address == t.write.address &&
             this->write.value == t.write.value && this->write.pc == t.write.pc);
-  }
-};
-class WarViolationHash {
- public:
-  size_t operator()(const WarViolation &w) const {
-    string readstr = to_string(w.read.pc) + to_string(w.read.address) + to_string(w.read.value);
-    string writestr = to_string(w.write.pc) + to_string(w.write.address) + to_string(w.write.value);
-    return (hash<string>()(readstr+writestr));
   }
 };
 
@@ -208,7 +201,8 @@ class HookIntermittency : public HookMemory {
 
   WarDetector warDetector;
   //list<tuple<MemAccessState, MemAccessState>> warViolations;
-  unordered_set<WarViolation, WarViolationHash> warViolations;
+  //unordered_set<WarViolation, WarViolationHash> warViolations;
+  list<WarViolation> warViolations;
 
   HookIntermittency(Emulator &emu) : HookMemory(emu, "intermittency") {
     hook_instr_cnt = new HookInstructionCount(emu);
@@ -292,7 +286,11 @@ class HookIntermittency : public HookMemory {
       auto vread = warDetector.getViolatingRead();
       auto vwrite = warDetector.getViolatingWrite();
 
-      warViolations.insert({vread, vwrite});
+      WarViolation war(vread, vwrite);
+      auto wardup = find(warViolations.begin(), warViolations.end(), war);
+      if (wardup == warViolations.end()) {
+        warViolations.push_back(war);
+      }
       warDetector.clearWar();
       // getchar();
 
