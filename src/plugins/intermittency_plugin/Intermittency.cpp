@@ -28,7 +28,7 @@ class HookInstructionCount : public HookCode {
   uint64_t count = 0;
   uint64_t pc = 0;
 
-  HookInstructionCount(Emulator &emu) : HookCode(emu, "icnt-ratio") {
+  HookInstructionCount(Emulator &emu) : HookCode(emu, "icnt-intermittency") {
   }
 
   ~HookInstructionCount() {
@@ -76,9 +76,9 @@ struct CheckpointRegion {
 };
 std::ostream& operator<<(std::ostream &o, const CheckpointRegion &cpr){
   ios_base::fmtflags f(cout.flags());
-  cout << hex << "power failure at 0x" << cpr.last_instruction.pc
-       << " [first change at 0x" << cpr.first_changed_instruction.pc
-       << " was at 0x" << cpr.original_instruction.pc << "]";
+  cout << hex << "Power failure occurred at 0x" << cpr.last_instruction.pc
+       << " first different instruction state at 0x" << cpr.first_changed_instruction.pc;
+       //<< " originally at 0x" << cpr.original_instruction.pc;
   cout.flags(f);
   return o;
 }
@@ -235,11 +235,11 @@ class HookIntermittency : public HookMemory {
   }
 
   ~HookIntermittency() {
-    printCheckpointRegions();
     printWarViolations();
+    printCheckpointRegions();
     cout << "Emulated " << power_failure_count << " power failures" << endl;
     if (no_forward_progress) {
-      cout << "Aborted emulation due to a lack of foward progress!" << endl;
+      cout << "Aborted emulation due to a lack of forward progress!" << endl;
     }
   }
 
@@ -284,17 +284,18 @@ class HookIntermittency : public HookMemory {
   }
 
   void printCheckpointRegions() {
+    cout << "Possible checkpoint regions (detected)" << endl;
     for (const auto &cpr : checkpointRegions) {
-      cout << "Checkpoint region: " << cpr << endl;
+      cout << "  " << cpr << endl;
     }
   }
 
   void printWarViolations() {
     if (warViolations.size() != 0) {
 
-      cout << "WAR violation(s) found!" << endl;
+      cout << "WAR violation(s) found" << endl;
       for (const auto &war : warViolations) {
-        cout << war << endl;
+        cout << "  " << war << endl;
       }
     }
   }
@@ -358,7 +359,7 @@ class HookIntermittency : public HookMemory {
     // Power failures
     //
     if (instructionOrderIt == instructionOrder.end()) {
-      // We are beond the last recorded instruction
+      // We are beyond the last recorded instruction
       ++new_instructions_count;
       instructionOrder.push_back(istate); // add the new instruction to the chain
 
@@ -410,7 +411,7 @@ class HookIntermittency : public HookMemory {
           no_forward_progress = true;
           cout << getLeader() << "No forward progress after " << same_pc_count
                << " tries at " << istate << endl;
-          getEmulator().stop(name + " plugin detected no foward progress");
+          getEmulator().stop(name + " plugin detected no forward progress");
         }
       }
 
@@ -437,7 +438,7 @@ static void registerMyCodeHook(Emulator &emu, HookManager &HM) {
   HM.add(mf);
 }
 
-// Class that is used by ICEmu to finf the register function
+// Class that is used by ICEmu to find the register function
 // NB.  * MUST BE NAMED "RegisterMyHook"
 //      * MUST BE global
 RegisterHook RegisterMyHook(registerMyCodeHook);
