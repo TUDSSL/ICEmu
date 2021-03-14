@@ -24,16 +24,16 @@ ostream &operator<<(ostream &os, const vector<T> &v) {
 bool ArgParse::parse(int argc, char **argv) {
   try {
     po::options_description desc("Allowed options");
-    desc.add_options()(
-        "help,h", "produce help message")(
-        "config-file,c", po::value< vector<string> >()->required(), "json config file")(
-        "elf-file,e", po::value<string>(), "elf input file")(
-        "plugin,p", po::value< vector<string> >(), "load plugin (can be passed multiple times)")(
-        "dump-hex,x", "dump hex file of the memory regions at completion")(
-        "dump-bin,b", "dump bin file of the memory regions at completion")(
-        "dump-reg,r", "dump file with the register values at completion")(
-        "dump-prefix", po::value<string>()->default_value("dump-"),
-        "dump file prefix");
+    desc.add_options()
+        ("help,h", "produce help message")
+        ("config-file,c", po::value< vector<string> >()->required(), "json config file")
+        ("elf-file,e", po::value<string>(), "elf input file")
+        ("plugin,p", po::value< vector<string> >(), "load plugin (can be passed multiple times)")
+        ("plugin-arg,a", po::value< vector<string> >(), "arguments accessable to the plugins")
+        ("dump-hex,x", "dump hex file of the memory regions at completion")
+        ("dump-bin,b", "dump bin file of the memory regions at completion")
+        ("dump-reg,r", "dump file with the register values at completion")
+        ("dump-prefix", po::value<string>()->default_value("dump-"), "dump file prefix");
 
     po::positional_options_description p;
     p.add("elf-file", -1);

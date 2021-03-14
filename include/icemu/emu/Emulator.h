@@ -12,6 +12,7 @@
 #include "icemu/emu/Memory.h"
 #include "icemu/emu/Registers.h"
 #include "icemu/hooks/HookManager.h"
+#include "icemu/plugin/PluginArguments.h"
 
 namespace icemu {
 
@@ -19,6 +20,9 @@ class Emulator {
  private:
   Config &cfg_;
   Memory &mem_;
+
+  /* Plugin arguments */
+  PluginArguments plugin_args;
 
   Registers registers;
   HookManager hook_manager;
@@ -85,6 +89,7 @@ class Emulator {
   inline Config &getConfig() { return cfg_; }
   inline uc_engine *getUnicornEngine() { return uc; }
   inline csh *getCapstoneEngine() { return &cs; }
+  inline PluginArguments &getPluginArguments() { return plugin_args; };
 
 };
 

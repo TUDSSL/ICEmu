@@ -77,6 +77,13 @@ int main(int argc, char **argv) {
   Emulator emu(cfg, mem);
   emu.init();
 
+  /* Add the plugin arguments */
+  auto &plugin_args = emu.getPluginArguments();
+  if (args.vm.count("plugin-arg")) {
+    auto pargs = args.vm["plugin-arg"].as< vector<string> >();
+    plugin_args.add(pargs);
+  }
+
   /* Register all builtin hooks */
   BuiltinHooks::registerHooks(emu, emu.getHookManager());
 
