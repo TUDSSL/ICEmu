@@ -58,6 +58,14 @@ class HookInstructionCount : public HookCode {
     auto estack_sym = symbols.get("_estack");
     estack = estack_sym->address;
     cout << "Estack at: " << estack << endl;
+
+#if 0
+    cout << "Plugin arguments:" << endl;
+    auto &plugin_args = emu.getPluginArguments();
+    for (const auto &a : plugin_args.getArgs()) {
+      cout << "Plugin arg: " << a << endl;
+    }
+#endif
   }
 
   ~HookInstructionCount() {
@@ -89,8 +97,6 @@ class HookInstructionCount : public HookCode {
   }
 };
 
-// TODO: Extend the WAR detection to take write size into account
-// We should add an entry for every byte
 struct InstructionState {
   uint64_t pc;
   uint64_t icount;
@@ -163,10 +169,11 @@ class WarLog {
     warLogLines.push_back(log);
   }
 
-  void write() {
-    ofstream f(filename);
+  void write(string prefix="") {
+    string filename_cmplt = prefix+"/"+filename;
+    ofstream f(filename_cmplt);
     if (!f.is_open()) {
-      cout << "Error opening log file: " << filename << endl;
+      cout << "Error opening log file: " << filename_cmplt << endl;
       return;
     }
 
@@ -178,22 +185,11 @@ class WarLog {
 
 };
 
-/*
- * We have two types of WAR
- *  1. WAR -> RW
- *  2. protected WAR -> WRW
- * We detect both.
- * A war is protected if there is no other non-protected WAR between
- * the initial WR.
- * A war happens if there is a RW without another RW happening between the RW
- * A war clears the reads
- */
 class WarDetector {
  private:
   bool detect_protected_war; // WRW is OK
-
-  bool war;
-  bool protected_war;
+  //bool war;
+  //bool protected_war;
 
   unordered_set<MemAccessState, MemAccessStateHash> reads;
   unordered_set<MemAccessState, MemAccessStateHash> writes;
@@ -202,22 +198,23 @@ class WarDetector {
   MemAccessState violatingWrite;
 
  public:
-  WarDetector(bool detect_protected_war = true)
-      : detect_protected_war(detect_protected_war) {
+  WarLog log;
+
+  WarDetector(const string &logfile, bool detect_protected_war = true)
+      : detect_protected_war(detect_protected_war), log(logfile) {
     reset();
   }
 
   void reset() {
     reads.clear();
     writes.clear();
-    war = false;
+    //war = false;
 
     violatingRead.pc = 0;
     violatingWrite.pc = 0;
   }
 
-  void addRead(InstructionState &is) {
-    MemAccessState mas(is.mem_address, is.pc, is.icount);
+  void addRead(MemAccessState &mas) {
     auto rd = reads.find(mas);
     if (rd != reads.end()) {
       // if it's aready in the read set we update it (new pc and/or icount)
@@ -226,8 +223,21 @@ class WarDetector {
     reads.insert(mas);
   }
 
-  void addWrite(InstructionState &is) {
+  void addRead(InstructionState &is) {
     MemAccessState mas(is.mem_address, is.pc, is.icount);
+
+    auto mem_size = is.mem_size;
+    for (armaddr_t i=0; i<mem_size; i++) {
+      MemAccessState mas_byte = mas;
+      mas_byte.address += i;
+      addRead(mas_byte);
+    }
+
+    //addRead(mas);
+  }
+
+  bool addWrite(MemAccessState &mas) {
+    bool war;
 
     auto rd = reads.find(mas);
     auto wr = writes.find(mas);
@@ -265,15 +275,27 @@ class WarDetector {
       writes.insert(mas); // Add to writes
     }
 
-    return;
-  }
-
-  bool hasWar() {
     return war;
   }
 
-  void clearWar() {
-    war = false;
+  bool addWrite(InstructionState &is) {
+    MemAccessState mas(is.mem_address, is.pc, is.icount);
+
+    bool war = false;
+
+    auto mem_size = is.mem_size;
+    for (armaddr_t i=0; i<mem_size; i++) {
+      MemAccessState mas_byte = mas;
+      mas_byte.address += i;
+      bool war_byte = addWrite(mas_byte);
+
+      if (war_byte == true) {
+        war = true;
+      }
+    }
+
+    //addWrite(mas);
+    return war;
   }
 
   MemAccessState getViolatingRead() {
@@ -283,7 +305,6 @@ class WarDetector {
   MemAccessState getViolatingWrite() {
     return violatingWrite;
   }
-
 };
 
 // TODO: Need a way to get information from other hooks
@@ -295,13 +316,15 @@ class HookIdempotencyStatistics : public HookMemory {
 
   enum MemAccessType {
     UNKNOWN = 0,
+    MEM_NONE,
     MEM_LOCAL,
     MEM_STACK,
     MEM_GLOBAL,
   };
 
-  string MemAccessTypeStr[4] = {
+  string MemAccessTypeStr[5] = {
       "UNKNOWN",
+      "NONE",
       "LOCAL",
       "STACK",
       "GLOBAL",
@@ -326,12 +349,24 @@ class HookIdempotencyStatistics : public HookMemory {
  public:
   HookInstructionCount *hook_instr_cnt;
 
+  //
   // Different WAR detectors
-  WarDetector warDetector {true}; // Takes protecting writes into account -> WRW is NOT a WAR
-  WarLog warLog {"idempotent-sections-dump.csv"};
+  //
 
-  WarDetector warDetectorNoProtected {false}; // Ignores protecting writes -> WRW is a WAR
-  WarLog warLogNoProrected {"idempotent-sections-no-protected-dump.csv"};
+  // Intra-procedural, detects across function boundaries
+  WarDetector warDetector {"idempotent-sections-intra-procedural.csv", true}; // Takes protecting writes into account -> WRW is NOT a WAR
+
+  // Inter-procedural, section is ended when entering a function
+  WarDetector warDetectorInterProcedural {"idempotent-sections-inter-procedural-dump.csv", true}; // Takes protecting writes into account -> WRW is NOT a WAR
+
+  // Ignores protecting writes -> WRW is WAR
+  // Intra-procedural, detects across function boundaries
+  WarDetector warDetectorNoProtected {"idempotent-sections-no-protected-intra-procedural-dump.csv", false};
+
+  // Ignores protecting writes -> WRW is WAR
+  // Inter-procedural, section is ended when entering a function
+  WarDetector warDetectorNoProtectedInterProcedural {"idempotent-sections-no-protected-inter-procedural-dump.csv", false};
+
 
   HookIdempotencyStatistics(Emulator &emu) : HookMemory(emu, "idempotent-stats") {
     hook_instr_cnt = new HookInstructionCount(emu);
@@ -340,8 +375,25 @@ class HookIdempotencyStatistics : public HookMemory {
   ~HookIdempotencyStatistics() {
     cout << "Dumping log files" << endl;
 
-    warLog.write();
-    warLogNoProrected.write();
+    string out_dir;
+
+    // Create a directory if the argument:
+    // idempotent-stats-output-dir=output_dir
+    string find_arg="idempotent-stats-output-dir=";
+    for (const auto &a : getEmulator().getPluginArguments().getArgs()) {
+      auto pos = a.find(find_arg);
+      if (pos != string::npos) {
+        out_dir = a.substr(pos+find_arg.length());
+        break;
+      }
+    }
+
+    cout << "Output directory: " << out_dir << endl;
+
+    warDetector.log.write(out_dir);
+    warDetectorInterProcedural.log.write(out_dir);
+    warDetectorNoProtected.log.write(out_dir);
+    warDetectorNoProtectedInterProcedural.log.write(out_dir);
   }
 
   enum MemAccessType getMemAccessType(InstructionState &istate) {
@@ -370,7 +422,7 @@ class HookIdempotencyStatistics : public HookMemory {
 
   }
 
-  bool detectWar(WarDetector &wd, WarLog &wl, InstructionState &istate, bool is_read, bool inter_procedural=false) {
+  bool detectWar(WarDetector &wd, InstructionState &istate, bool is_read, bool inter_procedural=false) {
     bool war_detected = false;
 
     // If we are intra procedural, we keep tracking when entering a new
@@ -386,22 +438,24 @@ class HookIdempotencyStatistics : public HookMemory {
                       0,  // memory address
                       istate.function_address,
                       istate.function_name,
-                      0,  // mem_type,
-                      &MemAccessTypeStr[0],
+                      1,  // mem_type,
+                      &MemAccessTypeStr[1],
                       RE_FUNCTION_ENTRY,
                       &RegionEndTypeStr[RE_FUNCTION_ENTRY]};
-      wl.add(l); // Add the end of the region
+      wd.log.add(l); // Add the end of the region
       wd.reset(); //
     }
+
+    bool has_war = false;
 
     // check for WAR
     if (is_read) {
       wd.addRead(istate);
     } else {
-      wd.addWrite(istate);
+      has_war = wd.addWrite(istate);
     }
 
-    if (wd.hasWar()) {
+    if (has_war) {
       // A WAR happened, so we break the section just before the write
       // and add the write to the warDetector
       auto read = wd.getViolatingRead();
@@ -422,7 +476,7 @@ class HookIdempotencyStatistics : public HookMemory {
                       &MemAccessTypeStr[mem_type],
                       RE_WAR,
                       &RegionEndTypeStr[RE_WAR]};
-      wl.add(l);
+      wd.log.add(l);
 
       wd.reset(); // The end of an idempotent section (a "checkpoint")
       wd.addWrite(istate); // We know it was a write, as only a write can trigger a WAR
@@ -455,8 +509,13 @@ class HookIdempotencyStatistics : public HookMemory {
       is_read = false;
     }
 
-    detectWar(warDetector, warLog, istate, is_read);
-    detectWar(warDetectorNoProtected, warLogNoProrected, istate, is_read);
+    // Inra-procedural detectors
+    detectWar(warDetector, istate, is_read);
+    detectWar(warDetectorNoProtected, istate, is_read);
+
+    // Inter-procedural detectors
+    detectWar(warDetectorInterProcedural, istate, is_read, true);
+    detectWar(warDetectorNoProtectedInterProcedural, istate, is_read, true);
 
     hook_instr_cnt->new_function = false; // reset the status (see NB)
   }
