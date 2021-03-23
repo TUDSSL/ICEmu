@@ -53,6 +53,11 @@ class HookInstructionCount : public HookCode {
   bool new_function = true;
   list<FunctionFrame> function_entries; // is cleared by the HookIdempotencyStatistics class
 
+  void clearNewFunction() {
+    new_function = false;
+    function_entries.clear();
+  }
+
   // Map from an address to a function
   map<armaddr_t, const string *> function_map;
   map<armaddr_t, const string *> function_entry_map;
@@ -185,8 +190,6 @@ struct InstructionState {
   uint64_t icount;
   armaddr_t mem_address;
   armaddr_t mem_size;
-  armaddr_t function_address;
-  const string *function_name;
 };
 
 struct MemAccessState {
@@ -244,7 +247,8 @@ class WarLog {
   string filename;
 
  public:
-  WarLog(const string &_filename) {
+
+  void set_filename(const string &_filename) {
     filename = _filename;
   }
 
@@ -269,11 +273,21 @@ class WarLog {
 };
 
 class WarDetector {
- private:
-  bool detect_protected_war; // WRW is OK
-  //bool war;
-  //bool protected_war;
+ public:
+  enum Type {
+    INTRA_PROCEDURAL,  // Do not take function boundaries into account
+    INTER_PROCEDURAL,  // Create a checkpoint at every function entry
+    INTER_PROCEDURAL_ONLY_WAR_ENTRY,  // Don't create a checkpoint at the
+                                      // start of the function if it does
+                                      // not have a WAR violation
+  };
 
+  struct Config {
+    enum Type type = INTER_PROCEDURAL;
+    bool protecting_writes = true; // WRW is OK
+  };
+
+ private:
   unordered_set<MemAccessState, MemAccessStateHash> reads;
   unordered_set<MemAccessState, MemAccessStateHash> writes;
 
@@ -282,10 +296,38 @@ class WarDetector {
 
  public:
   WarLog log;
+  Config cfg;
 
-  WarDetector(const string &logfile, bool detect_protected_war = true)
-      : detect_protected_war(detect_protected_war), log(logfile) {
+  WarDetector() {
     reset();
+  }
+
+  void setConfig(struct Config _cfg) {
+    cfg = _cfg;
+
+    // Create the filename according to the cfg
+    string fn = "idempotent-sections";
+
+    switch (cfg.type) {
+      case INTRA_PROCEDURAL:
+        fn += "-intra-procedural";
+        break;
+      case INTER_PROCEDURAL:
+        fn += "-inter-procedural";
+        break;
+      case INTER_PROCEDURAL_ONLY_WAR_ENTRY:
+        fn += "-inter-procedural-only-war-entry";
+        break;
+    }
+
+    if (cfg.protecting_writes == false) {
+      fn += "-no-protecting-writes";
+    }
+
+    // Add the csv extension
+    fn += ".csv";
+
+    log.set_filename(fn);
   }
 
   void reset() {
@@ -330,7 +372,7 @@ class WarDetector {
 
     if (wr_before == true && rd_before == true) {
       // WRW -> protected WAR
-      if (detect_protected_war) {
+      if (cfg.protecting_writes) {
         // protected war is ignored
         // WRW -> protected
         war = false;
@@ -406,11 +448,7 @@ class HookIdempotencyStatistics : public HookMemory {
   };
 
   const string MemAccessTypeStr[5] = {
-      "UNKNOWN",
-      "NONE",
-      "LOCAL",
-      "STACK",
-      "GLOBAL",
+      "UNKNOWN", "NONE", "LOCAL", "STACK", "GLOBAL",
   };
 
   enum RegionEndType {
@@ -429,60 +467,88 @@ class HookIdempotencyStatistics : public HookMemory {
 
   uint64_t max_idempotent_secion_size = 1000; // The maximum size of an idempotent section, 0 is unlimited
 
+  // Confuguration passed as arguments
+  WarDetector warDetector;
+
+  string output_dir = "./";
+
  public:
   HookInstructionCount *hook_instr_cnt;
 
-  //
-  // Different WAR detectors
-  //
 
-  // Intra-procedural, detects across function boundaries
-  WarDetector warDetector {"idempotent-sections-intra-procedural.csv", true}; // Takes protecting writes into account -> WRW is NOT a WAR
+  bool findArgument(const string &find_arg, string &arg_value) {
+    for (const auto &a : getEmulator().getPluginArguments().getArgs()) {
+      auto pos = a.find(find_arg);
+      if (pos != string::npos) {
+        arg_value = a.substr(pos+find_arg.length());
+        return true;
+      }
+    }
+    cout << "Using default for: '" << find_arg << "' option '" << arg_value << "'" << endl;
+    return false;
+  }
 
-  // Inter-procedural, section is ended when entering a function
-  WarDetector warDetectorInterProcedural {"idempotent-sections-inter-procedural-dump.csv", true}; // Takes protecting writes into account -> WRW is NOT a WAR
+  void processWarDetectorArguments() {
+    string find_arg;
 
-  // Ignores protecting writes -> WRW is WAR
-  // Intra-procedural, detects across function boundaries
-  WarDetector warDetectorNoProtected {"idempotent-sections-no-protected-intra-procedural-dump.csv", false};
+    string wardetector_arg_value = "inter";
+    findArgument("idempotent-stats-wardetector=", wardetector_arg_value);
 
-  // Ignores protecting writes -> WRW is WAR
-  // Inter-procedural, section is ended when entering a function
-  WarDetector warDetectorNoProtectedInterProcedural {"idempotent-sections-no-protected-inter-procedural-dump.csv", false};
+    string protecting_writes_arg_value = "true";
+    findArgument("idempotent-stats-protecting-writes=", protecting_writes_arg_value);
 
+    output_dir = "./";
+    findArgument("idempotent-stats-output-dir=", output_dir);
+
+    // Process the string arguments
+    map<string, WarDetector::Type> warDetectorTypeMap;
+    warDetectorTypeMap["inra"]  = WarDetector::INTRA_PROCEDURAL;
+    warDetectorTypeMap["inter"] = WarDetector::INTER_PROCEDURAL;
+    warDetectorTypeMap["inter-only-war-entry"] = WarDetector::INTER_PROCEDURAL_ONLY_WAR_ENTRY;
+
+    WarDetector::Config wd_cfg;
+
+    // Set the type
+    const auto &f_type = warDetectorTypeMap.find(wardetector_arg_value);
+    if (f_type == warDetectorTypeMap.end()) {
+      cout << "Unknown option " << wardetector_arg_value
+           << " for idempotent-stats-wardetector" << endl;
+      exit(-1);
+    }
+    wd_cfg.type = f_type->second;
+
+    // Set bool for protected writes
+    if (protecting_writes_arg_value == "true") {
+      wd_cfg.protecting_writes = true;
+    } else if (protecting_writes_arg_value == "false") {
+      wd_cfg.protecting_writes = false;
+    } else {
+      cout << "Unknown option " << protecting_writes_arg_value
+           << " for idempotent-stats-protecting-writes=" << endl;
+    }
+
+    // Initialize the WAR detector
+    warDetector.setConfig(wd_cfg);
+  }
 
   HookIdempotencyStatistics(Emulator &emu) : HookMemory(emu, "idempotent-stats") {
     hook_instr_cnt = new HookInstructionCount(emu);
+
+    // Processes the arguments and initializes the WarDetector
+    processWarDetectorArguments();
   }
 
   ~HookIdempotencyStatistics() {
     cout << "Dumping log files" << endl;
+    cout << "Output directory: " << output_dir << endl;
 
-    string out_dir;
-
-    // Create a directory if the argument:
-    // idempotent-stats-output-dir=output_dir
-    string find_arg="idempotent-stats-output-dir=";
-    for (const auto &a : getEmulator().getPluginArguments().getArgs()) {
-      auto pos = a.find(find_arg);
-      if (pos != string::npos) {
-        out_dir = a.substr(pos+find_arg.length());
-        break;
-      }
-    }
-
-    cout << "Output directory: " << out_dir << endl;
-
-    warDetector.log.write(out_dir);
-    warDetectorInterProcedural.log.write(out_dir);
-    warDetectorNoProtected.log.write(out_dir);
-    warDetectorNoProtectedInterProcedural.log.write(out_dir);
+    warDetector.log.write(output_dir);
 
     // Output the instruction_execution_map data
     // Done here becuase it's part of the idemp. stats and we already have the
     // directory
     if (hook_instr_cnt->track_instruction_execution == true) {
-      string instruction_execution_filename = out_dir + "/" + "instruction-exection-count-map.csv";
+      string instruction_execution_filename = output_dir + "/" + "instruction-exection-count-map.csv";
       ofstream f(instruction_execution_filename);
       if (!f.is_open()) {
         cout << "Error opening log file: " << instruction_execution_filename << endl;
@@ -522,42 +588,58 @@ class HookIdempotencyStatistics : public HookMemory {
 
   }
 
-#if 0
-  // Callback called when a new function is entered
-  // TODO: add to the callback, and want to decide if we want to track
-  // what happens if we only put a checkpoint on functions when they ALSO
-  // generate a WAR (just only take the last one when a WAR happens like we do
-  // now
-  // TODO: what happens if we only do the last one before a WAR?
-  void addNewFunctionEntryWarCallBack(armaddr_t function_address, string &function_name, uint64_t icount) {
-
-  }
-#endif
-
-  bool detectWar(WarDetector &wd, InstructionState &istate, bool is_read, bool inter_procedural=false) {
+  bool detectWar(WarDetector &wd, InstructionState &istate, bool is_read) {
     bool war_detected = false;
 
     // If we are intra procedural, we keep tracking when entering a new
     // function. If we are *inter* procedural we end the idempotent section
     // and reset the tracker if we enter a new function
-    if (inter_procedural == true && hook_instr_cnt->new_function == true) {
-      // End the idempotent region and reset the tracker
-      // All zero to indicate a forced checkpoint
-      WarLogLine l = {0,  // read icount
-                      hook_instr_cnt->callstack.back().function_entry_icount,  // write icount
-                      0,  // read.pc
-                      0,  // write.pc
-                      0,  // memory address
-                      istate.function_address,
-                      *istate.function_name,
-                      1,  // mem_type,
-                      &MemAccessTypeStr[1],
-                      RE_FUNCTION_ENTRY,
-                      &RegionEndTypeStr[RE_FUNCTION_ENTRY]};
-      wd.log.add(l); // Add the end of the region
-      wd.reset(); //
+    if (hook_instr_cnt->new_function) {
+      switch (wd.cfg.type) {
+        case WarDetector::INTER_PROCEDURAL: {
+          for (const auto &fe : hook_instr_cnt->function_entries) {
+            WarLogLine l = {0,                         // read icount
+                            fe.function_entry_icount,  // write icount
+                            0,                         // read.pc
+                            0,                         // write.pc
+                            0,                         // memory address
+                            fe.function_address,
+                            *fe.function_name,
+                            1,  // mem_type,
+                            &MemAccessTypeStr[1],
+                            RE_FUNCTION_ENTRY,
+                            &RegionEndTypeStr[RE_FUNCTION_ENTRY]};
+            wd.log.add(l);  // Add the end of the region
+            wd.reset();     //
+          }
+          break;
+        }
+        case WarDetector::INTER_PROCEDURAL_ONLY_WAR_ENTRY: {
+          // Only add the last function entry
+          const auto &fe = hook_instr_cnt->function_entries.back();
+          WarLogLine l = {0,                         // read icount
+                          fe.function_entry_icount,  // write icount
+                          0,                         // read.pc
+                          0,                         // write.pc
+                          0,                         // memory address
+                          fe.function_address,
+                          *fe.function_name,
+                          1,  // mem_type,
+                          &MemAccessTypeStr[1],
+                          RE_FUNCTION_ENTRY,
+                          &RegionEndTypeStr[RE_FUNCTION_ENTRY]};
+          wd.log.add(l);  // Add the end of the region
+          wd.reset();     //
+          break;
+        }
+        default:
+          break;
+      }
     }
 
+    //
+    // Check for "normal" WAR violations
+    //
     bool has_war = false;
 
     // check for WAR
@@ -577,13 +659,14 @@ class HookIdempotencyStatistics : public HookMemory {
       // function)
       auto mem_type = getMemAccessType(istate);
 
+      const auto &fe = hook_instr_cnt->callstack.back();
       WarLogLine l = {read.icount,
                       write.icount,
                       read.pc,
                       write.pc,
                       read.address,
-                      istate.function_address,
-                      *istate.function_name,
+                      fe.function_address,
+                      *fe.function_name,
                       mem_type,
                       &MemAccessTypeStr[mem_type],
                       RE_WAR,
@@ -607,9 +690,7 @@ class HookIdempotencyStatistics : public HookMemory {
     InstructionState istate = {hook_instr_cnt->pc,
                                hook_instr_cnt->count,
                                arg->address,
-                               arg->size,
-                               hook_instr_cnt->callstack.back().function_address,
-                               hook_instr_cnt->callstack.back().function_name};
+                               arg->size};
     //
     // WAR detection
     //
@@ -621,15 +702,10 @@ class HookIdempotencyStatistics : public HookMemory {
       is_read = false;
     }
 
-    // Inra-procedural detectors
     detectWar(warDetector, istate, is_read);
-    detectWar(warDetectorNoProtected, istate, is_read);
 
-    // Inter-procedural detectors
-    detectWar(warDetectorInterProcedural, istate, is_read, true);
-    detectWar(warDetectorNoProtectedInterProcedural, istate, is_read, true);
-
-    hook_instr_cnt->new_function = false; // reset the status (see NB)
+    hook_instr_cnt->clearNewFunction();
+    //hook_instr_cnt->new_function = false; // reset the status (see NB)
   }
 };
 
