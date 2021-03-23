@@ -24,10 +24,15 @@ using namespace icemu;
 class MockPutc : public HookFunction {
 
  public:
+  bool use_color = true;
+  string color_start = "\033[1m";
+  string color_end = "\033[0m";
+
   // Always execute
   MockPutc(Emulator &emu, string fname) : HookFunction(emu, fname) {}
 
   ~MockPutc() {
+    cout << color_end;
   }
 
   // Hook run
@@ -39,7 +44,7 @@ class MockPutc : public HookFunction {
     Function::Argument<uint32_t> farg_file; // Unused
     Function::Arguments::parse(reg, farg_char, farg_file);
 
-    cout << farg_char.arg;
+    cout << color_start << farg_char.arg << color_end;
 
     Function::skip(reg, farg_char.arg);
   }
