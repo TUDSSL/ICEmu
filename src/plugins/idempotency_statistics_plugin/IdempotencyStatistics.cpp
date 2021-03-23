@@ -24,6 +24,7 @@
 using namespace std;
 using namespace icemu;
 
+
 // TODO: Need a way to get information from other hooks
 class HookInstructionCount : public HookCode {
  private:
@@ -32,26 +33,57 @@ class HookInstructionCount : public HookCode {
  public:
   uint64_t count = 0;
   uint64_t pc = 0;
-  string *function_name;
-  armaddr_t function_address = 0;
-  armaddr_t function_entry_icount = 0;
-  armaddr_t sp_function_entry = 0;
+
+  const string unknown_function_str = "UNKNOWN_FUNCTION";
+  struct FunctionFrame {
+    const string *function_name = nullptr;
+    armaddr_t function_address = 0;
+    uint64_t function_entry_icount = 0;
+    armaddr_t sp_function_entry = 0;
+    armaddr_t LR = 0;
+  };
+  list<FunctionFrame> callstack;
+
+
   armaddr_t estack;
 
   // A boolean that is true on the first instruction of a new function
   // NB. This is hacky, but new_function acts like an ISR flag
   // it needs to be manually reset after reading
   bool new_function = true;
+  list<FunctionFrame> function_entries; // is cleared by the HookIdempotencyStatistics class
 
-  map<armaddr_t, list<string>> function_map;
+  // Map from an address to a function
+  map<armaddr_t, const string *> function_map;
+  map<armaddr_t, const string *> function_entry_map;
+
+  // A map holding ALL executed instructions and the number of times they have
+  // been executed
+  const bool track_instruction_execution = true;
+  map<armaddr_t, uint64_t> instruction_execution_map;
 
   HookInstructionCount(Emulator &emu) : HookCode(emu, "icnt-idempotency-stats") {
-    auto symbols = getEmulator().getMemory().getSymbols();
+    auto &symbols = getEmulator().getMemory().getSymbols();
     for (const auto &sym : symbols.symbols) {
       if (sym.type == func_type) {
         //cout << "Func addr: " << sym.address << " - " << sym.getFuncAddr() << endl;
         //cout << "Func name: " << sym.name << endl;
-        function_map[sym.getFuncAddr()].push_back(sym.name);
+        //cout << "Func size: " << sym.size << endl;
+
+        // To check for function entries only
+        function_entry_map[sym.getFuncAddr()] = &sym.name;
+
+
+        // Add ALL the possible addresses in the function to the map
+        // Return the function name if it's in any of the addresses in the
+        // function.
+        // Assmumtions:
+        //  * All opcodes are 16-bit (2 bytes) or more in multiple
+        //  * Functions are continious (we use the size for functions)
+
+        for (armaddr_t faddr=sym.getFuncAddr(); faddr<sym.getFuncAddr()+sym.size; faddr+=2) {
+          function_map[faddr] = &sym.name;
+        }
       }
     }
 
@@ -69,14 +101,69 @@ class HookInstructionCount : public HookCode {
   }
 
   ~HookInstructionCount() {
+    cout << "Call stack size at the end of the program: " << callstack.size()
+         << " (should be 2)" << endl;
   }
 
-  list<string> *isFunctionStart(armaddr_t addr) {
-    auto f = function_map.find(addr);
-    if (f != function_map.end()) {
-      return &f->second;
+  const string *isFunctionEntry(armaddr_t addr) {
+    auto f = function_entry_map.find(addr);
+    if (f != function_entry_map.end()) {
+      return f->second;
     }
     return nullptr;
+  }
+
+  const string *inFunction(armaddr_t addr) {
+    auto f = function_map.find(addr);
+    if (f == function_map.end()) {
+      //cout << "Executing address that does not belong to any function ("
+      //     << addr << ")" << endl;
+      //while (1) {}
+      return nullptr;
+    }
+    return f->second;
+  }
+
+  void trackFunctions(armaddr_t addr) {
+
+    // Check if this is a function entry
+    // If so, we mark it as such
+    const string *function_entry = isFunctionEntry(addr);
+    if (function_entry != nullptr) {
+      //cout << "Address: " << addr << " Function entry: " << *function_entry << endl;
+      struct FunctionFrame callframe;
+      callframe.function_name = function_entry;
+      callframe.function_address = addr;
+      callframe.function_entry_icount = count;
+      callframe.sp_function_entry = getEmulator().getRegisters().get(Registers::SP);
+      callframe.LR = getEmulator().getRegisters().get(Registers::LR) & ~0x1;
+
+      callstack.push_back(callframe);
+      //cout << "callframe size: " << callstack.size() << endl;
+      //cout << "LR: " << callframe.LR << endl;
+
+      // Set new function flag
+      function_entries.push_back(callframe);
+      new_function = true;
+
+      return;
+    }
+
+    if (callstack.back().LR == addr) {
+      // We left the function and are back at the LR
+      // We pop stack frames until we are the current function
+      // This is because a function can use a "normal" branch to jump to the
+      // start of the function. If that's the case we DO detect it in
+      // the function entry check. So we need to unwind here if that happened.
+      const string *function_current = inFunction(addr);
+      while (callstack.back().function_name != function_current) {
+        callstack.pop_back();
+      }
+      //cout << "Function exit to: " << *callstack.back().function_name << endl;
+      //cout << "callframe size: " << callstack.size() << endl;
+    }
+
+    // Else we are somewhere in the same function
   }
 
   void run(hook_arg_t *arg) {
@@ -84,15 +171,11 @@ class HookInstructionCount : public HookCode {
     ++count;
     pc = arg->address;
 
-    list<string> *funcs = isFunctionStart(arg->address);
-    if (funcs != nullptr) {
-      function_name = &funcs->front();
-      function_address = arg->address;
-      function_entry_icount = count;
+    trackFunctions(arg->address);
 
-      sp_function_entry = getEmulator().getRegisters().get(Registers::SP);
-      //cout << "Entering function: " << *function_name << endl;
-      new_function = true;
+    // Track the number of times this instruction was executed
+    if (track_instruction_execution) {
+      instruction_execution_map[pc] += 1;
     }
   }
 };
@@ -103,7 +186,7 @@ struct InstructionState {
   armaddr_t mem_address;
   armaddr_t mem_size;
   armaddr_t function_address;
-  string *function_name;
+  const string *function_name;
 };
 
 struct MemAccessState {
@@ -131,11 +214,11 @@ struct WarLogLine {
   uint64_t write_code_address;
   armaddr_t memory_address;
   armaddr_t function_address;
-  string *function_name;
+  string function_name;
   uint32_t access_type;
-  string *access_type_str;
+  const string *access_type_str;
   uint32_t region_end_type;
-  string *region_end_type_str;
+  const string *region_end_type_str;
 };
 std::ostream& operator<<(std::ostream &o, const WarLogLine &l){
   char d = ',';
@@ -146,7 +229,7 @@ std::ostream& operator<<(std::ostream &o, const WarLogLine &l){
     << l.write_code_address << d
     << l.memory_address << d
     << l.function_address << d
-    << *l.function_name << d
+    << l.function_name << d
     << l.access_type << d
     << *l.access_type_str << d
     << l.region_end_type << d
@@ -169,7 +252,7 @@ class WarLog {
     warLogLines.push_back(log);
   }
 
-  void write(string prefix="") {
+  void write(string prefix="./") {
     string filename_cmplt = prefix+"/"+filename;
     ofstream f(filename_cmplt);
     if (!f.is_open()) {
@@ -322,7 +405,7 @@ class HookIdempotencyStatistics : public HookMemory {
     MEM_GLOBAL,
   };
 
-  string MemAccessTypeStr[5] = {
+  const string MemAccessTypeStr[5] = {
       "UNKNOWN",
       "NONE",
       "LOCAL",
@@ -337,7 +420,7 @@ class HookIdempotencyStatistics : public HookMemory {
     RE_FORCED
   };
 
-  string RegionEndTypeStr[4] = {
+  const string RegionEndTypeStr[4] = {
     "WAR",
     "FUNCTION_ENTRY",
     "SIZE_LIMIT",
@@ -394,12 +477,29 @@ class HookIdempotencyStatistics : public HookMemory {
     warDetectorInterProcedural.log.write(out_dir);
     warDetectorNoProtected.log.write(out_dir);
     warDetectorNoProtectedInterProcedural.log.write(out_dir);
+
+    // Output the instruction_execution_map data
+    // Done here becuase it's part of the idemp. stats and we already have the
+    // directory
+    if (hook_instr_cnt->track_instruction_execution == true) {
+      string instruction_execution_filename = out_dir + "/" + "instruction-exection-count-map.csv";
+      ofstream f(instruction_execution_filename);
+      if (!f.is_open()) {
+        cout << "Error opening log file: " << instruction_execution_filename << endl;
+        return;
+      }
+
+      for (const auto &m : hook_instr_cnt->instruction_execution_map) {
+        // First the address, then the number of times that it was executed
+        f << m.first << "," << m.second << endl;
+      }
+    }
   }
 
   enum MemAccessType getMemAccessType(InstructionState &istate) {
     auto address = istate.mem_address;
     auto estack_sp = hook_instr_cnt->estack;
-    auto f_entry_sp = hook_instr_cnt->sp_function_entry;
+    auto f_entry_sp = hook_instr_cnt->callstack.back().sp_function_entry;
     auto f_current_sp = getEmulator().getRegisters().get(Registers::SP);
 
     // Memory access is local if the address is larger than the current stack
@@ -422,6 +522,18 @@ class HookIdempotencyStatistics : public HookMemory {
 
   }
 
+#if 0
+  // Callback called when a new function is entered
+  // TODO: add to the callback, and want to decide if we want to track
+  // what happens if we only put a checkpoint on functions when they ALSO
+  // generate a WAR (just only take the last one when a WAR happens like we do
+  // now
+  // TODO: what happens if we only do the last one before a WAR?
+  void addNewFunctionEntryWarCallBack(armaddr_t function_address, string &function_name, uint64_t icount) {
+
+  }
+#endif
+
   bool detectWar(WarDetector &wd, InstructionState &istate, bool is_read, bool inter_procedural=false) {
     bool war_detected = false;
 
@@ -432,12 +544,12 @@ class HookIdempotencyStatistics : public HookMemory {
       // End the idempotent region and reset the tracker
       // All zero to indicate a forced checkpoint
       WarLogLine l = {0,  // read icount
-                      hook_instr_cnt->function_entry_icount,  // write icount
+                      hook_instr_cnt->callstack.back().function_entry_icount,  // write icount
                       0,  // read.pc
                       0,  // write.pc
                       0,  // memory address
                       istate.function_address,
-                      istate.function_name,
+                      *istate.function_name,
                       1,  // mem_type,
                       &MemAccessTypeStr[1],
                       RE_FUNCTION_ENTRY,
@@ -471,7 +583,7 @@ class HookIdempotencyStatistics : public HookMemory {
                       write.pc,
                       read.address,
                       istate.function_address,
-                      istate.function_name,
+                      *istate.function_name,
                       mem_type,
                       &MemAccessTypeStr[mem_type],
                       RE_WAR,
@@ -496,8 +608,8 @@ class HookIdempotencyStatistics : public HookMemory {
                                hook_instr_cnt->count,
                                arg->address,
                                arg->size,
-                               hook_instr_cnt->function_address,
-                               hook_instr_cnt->function_name};
+                               hook_instr_cnt->callstack.back().function_address,
+                               hook_instr_cnt->callstack.back().function_name};
     //
     // WAR detection
     //
