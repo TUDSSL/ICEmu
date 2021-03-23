@@ -41,7 +41,7 @@ class Function {
   template <typename T>
   class Argument {
    public:
-    T arg;
+    T arg = 0;
     size_t size;
 
     Argument() { size = sizeof(arg); }
