@@ -21,6 +21,8 @@
 #include "icemu/emu/Function.h"
 #include "icemu/emu/Symbols.h"
 
+#include "cycle_count_plugin/CycleCounter.h"
+
 using namespace std;
 using namespace icemu;
 
@@ -28,10 +30,16 @@ using namespace icemu;
 // TODO: Need a way to get information from other hooks
 class HookInstructionCount : public HookCode {
  private:
+  // Config
+  bool use_cycle_count = true;
+
+  // Private
   const char func_type = 2; // magic ELF function type
+  uint64_t instruction_count = 0;
+
+  CycleCounter cycleCounter;
 
  public:
-  uint64_t count = 0;
   uint64_t pc = 0;
 
   const string unknown_function_str = "UNKNOWN_FUNCTION";
@@ -67,7 +75,8 @@ class HookInstructionCount : public HookCode {
   const bool track_instruction_execution = true;
   map<armaddr_t, uint64_t> instruction_execution_map;
 
-  HookInstructionCount(Emulator &emu) : HookCode(emu, "icnt-idempotency-stats") {
+  HookInstructionCount(Emulator &emu)
+      : HookCode(emu, "icnt-idempotency-stats"), cycleCounter(emu) {
     auto &symbols = getEmulator().getMemory().getSymbols();
     for (const auto &sym : symbols.symbols) {
       if (sym.type == func_type) {
@@ -110,6 +119,13 @@ class HookInstructionCount : public HookCode {
          << " (should be 2)" << endl;
   }
 
+  uint64_t getInstructionCount() {
+    if (use_cycle_count == true) {
+      return cycleCounter.cycleCount();
+    }
+    return instruction_count;
+  }
+
   const string *isFunctionEntry(armaddr_t addr) {
     auto f = function_entry_map.find(addr);
     if (f != function_entry_map.end()) {
@@ -139,7 +155,7 @@ class HookInstructionCount : public HookCode {
       struct FunctionFrame callframe;
       callframe.function_name = function_entry;
       callframe.function_address = addr;
-      callframe.function_entry_icount = count;
+      callframe.function_entry_icount = getInstructionCount();
       callframe.sp_function_entry = getEmulator().getRegisters().get(Registers::SP);
       callframe.LR = getEmulator().getRegisters().get(Registers::LR) & ~0x1;
 
@@ -173,7 +189,12 @@ class HookInstructionCount : public HookCode {
 
   void run(hook_arg_t *arg) {
     //(void)arg;  // Don't care
-    ++count;
+    instruction_count += 1;
+
+    if (use_cycle_count) {
+      cycleCounter.add(arg->address, arg->size);
+    }
+
     pc = arg->address;
 
     trackFunctions(arg->address);
@@ -688,7 +709,7 @@ class HookIdempotencyStatistics : public HookMemory {
 
   void run(hook_arg_t *arg) {
     InstructionState istate = {hook_instr_cnt->pc,
-                               hook_instr_cnt->count,
+                               hook_instr_cnt->getInstructionCount(),
                                arg->address,
                                arg->size};
     //
