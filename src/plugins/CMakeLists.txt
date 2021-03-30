@@ -6,7 +6,7 @@ set(PLUGIN_COMPILE_OPTIONS
     -Wall
     -Wextra
     -g
-    -O0
+    -O3
     -std=c++11
     -shared
     -fPIC
@@ -28,3 +28,4 @@ add_subdirectory(memory_access_ratio_plugin)
 add_subdirectory(instruction_count_main_plugin)
 add_subdirectory(intermittency_plugin)
 add_subdirectory(idempotency_statistics_plugin)
+add_subdirectory(cycle_count_plugin)
