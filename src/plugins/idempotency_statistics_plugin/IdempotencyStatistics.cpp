@@ -581,6 +581,18 @@ class HookIdempotencyStatistics : public HookMemory {
         f << m.first << "," << m.second << endl;
       }
     }
+
+    // Output the total number of cycles executed to a file
+    string cycle_count_filename = output_dir + "/" + "cycle_count.txt";
+    ofstream f_cycles(cycle_count_filename);
+    if (!f_cycles.is_open()) {
+      cout << "Error opening cycle count file: " << cycle_count_filename
+           << endl;
+      return;
+    }
+    cout << "The program ran for: " << hook_instr_cnt->getInstructionCount() << " clock cycles (estimate)" << endl;
+    f_cycles << hook_instr_cnt->getInstructionCount() << endl;
+
   }
 
   enum MemAccessType getMemAccessType(InstructionState &istate) {
