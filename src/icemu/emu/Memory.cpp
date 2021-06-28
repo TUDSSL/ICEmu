@@ -225,3 +225,9 @@ memseg_t *Memory::find(armaddr_t address) {
   }
   return nullptr;
 }
+
+char *Memory::at(armaddr_t address) {
+  auto mseg = find(address);
+  char *data_start = (char *)&mseg->data[address - mseg->origin];
+  return data_start;
+}

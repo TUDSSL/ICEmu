@@ -91,6 +91,10 @@ class Emulator {
   inline csh *getCapstoneEngine() { return &cs; }
   inline PluginArguments &getPluginArguments() { return plugin_args; };
 
+  std::string getElfFile() { return mem_.getElfFile(); }
+  std::string getElfDir();
+  std::string getElfName();
+
 };
 
 }  // namespace icemu

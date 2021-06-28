@@ -68,11 +68,14 @@ class Memory {
   void populate();
   memseg_t *find(std::string memseg_name);
   memseg_t *find(armaddr_t address);
+  char *at(armaddr_t address);
 
   Symbols &getSymbols() { return symbols; }
 
   bool good() { return good_; }
   bool bad() { return !good_; }
+
+  std::string getElfFile() { return elf_file_; }
 
   friend std::ostream &operator<<(std::ostream &out, const Memory &ml);
 };

@@ -180,3 +180,28 @@ bool Emulator::readMemory(armaddr_t address, char *result, armaddr_t size)
   return true;
 }
 
+string Emulator::getElfDir() {
+  auto elf_file = getElfFile();
+  auto last_slash = elf_file.find_last_of("\\/");
+  string elf_file_dir;
+
+  if (last_slash != string::npos)
+    elf_file_dir = elf_file.substr(0, last_slash);
+  else
+    elf_file_dir = "./";
+
+  return elf_file_dir;
+}
+
+string Emulator::getElfName() {
+  auto elf_file = getElfFile();
+  auto last_slash = elf_file.find_last_of("\\/");
+  string elf_file_name;
+
+  if (last_slash != string::npos)
+    elf_file_name = elf_file.substr(last_slash+1, string::npos);
+  else
+    elf_file_name = elf_file;
+
+  return elf_file_name;
+}

@@ -16,6 +16,7 @@ class Hook {
     TYPE_UNINITIALIZED,
     TYPE_RANGE,
     TYPE_ALL,
+    TYPE_NONE,
   };
 
   // TODO: Figure out if we need the delete operations
