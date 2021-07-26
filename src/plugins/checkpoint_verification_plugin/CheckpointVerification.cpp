@@ -132,6 +132,9 @@ class CheckpointVerification : public HookMemory {
   set<const symbol_t *> CheckpointSymbols;
   set<armaddr_t> CheckpointAddresses;
 
+  set<const symbol_t *> IgnoreSymbols;
+  set<armaddr_t> IgnoreAddresses;
+
   bool hasUncaughtWarAddrFile = false;
   string UncaughtWarAddrFileName;
 
@@ -175,6 +178,7 @@ class CheckpointVerification : public HookMemory {
 
   void processTrackVariableArguments() {
     processTrackVariableArgument("cpval-checkpoint-variable="); // Write to what variable indicates a checkpoint
+    processTrackVariableArgument("cpval-ignore-variable="); // Write to what variable does not matter
     processTrackVariableArgument("cpval-uncaught-war-addr-file=");
     processTrackVariableArgument("cpval-uncaught-war-file=");
     processTrackVariableArgument("cpval-checkpoint-strength=");
@@ -199,6 +203,27 @@ class CheckpointVerification : public HookMemory {
       }
     } catch (...) {
       cout << printLeader() << " no variables to track provided" << endl;
+    }
+
+    /*
+     * Find the variable symbols to ignore
+     */
+    try {
+      auto &values = ArgMap["cpval-ignore-variable="];
+      for (auto &value : values) {
+        const symbol_t *var_symbol;
+        try {
+          var_symbol = getEmulator().getMemory().getSymbols().get(value);
+        } catch (...) {
+          cout << printLeader() << " could not find symbol: " << value << endl;
+          continue;
+        }
+        cout << printLeader() << " ignore variable " << value
+             << " at address " << var_symbol->address << endl;
+        IgnoreSymbols.insert(var_symbol);
+        IgnoreAddresses.insert(var_symbol->address);
+      }
+    } catch (...) {
     }
 
     /*
@@ -436,6 +461,12 @@ class CheckpointVerification : public HookMemory {
 
     // Skip processing if it's an ignored function
     if (IgnoreFunctionAddrs.find(pc) != IgnoreFunctionAddrs.end()) {
+      return;
+    }
+
+    // Skip processing if it's an ignored variable
+    if (IgnoreAddresses.find(arg->address) != IgnoreAddresses.end()) {
+      //cout << "Ignoring access to: " << hex << arg->address << dec << endl;
       return;
     }
 
