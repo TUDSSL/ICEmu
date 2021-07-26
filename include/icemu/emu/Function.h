@@ -23,19 +23,24 @@ namespace icemu {
 class Function {
  public:
   static void setReturn(Registers &reg, armaddr_t value) { reg.set(0, value); }
+
+  static armaddr_t toFuncAddr(armaddr_t address) {
+    return address | 0x1;
+  }
+
   static void skip(Registers &reg) {
-    reg.set(Registers::PC, reg.get(Registers::LR));
+    reg.set(Registers::PC, toFuncAddr(reg.get(Registers::LR)));
+  }
+
+  static void skip(Registers &reg, armaddr_t return_value) {
+    skip(reg);
+    setReturn(reg, return_value);
   }
 
   // Special (rare) case
   static void setReturn64(Registers &reg, uint64_t value) {
     reg.set(0, value & ((1UL<<32)-1));
     reg.set(1, value >> 32);
-  }
-
-  static void skip(Registers &reg, armaddr_t return_value) {
-    reg.set(Registers::PC, reg.get(Registers::LR));
-    setReturn(reg, return_value);
   }
 
   template <typename T>
