@@ -25,7 +25,6 @@ class HookFunction : public HookCode {
                            ->getFuncAddr();
       type = Hook::TYPE_RANGE;
       low = high = func_addr;
-      std::cout << "Address: " << low << ", " << high << std::endl;
     } catch (...) {
       std::cerr << "Failed to register function hook for: " << function_name
                 << " (UNKNOWN ADDRESS)" << std::endl;
