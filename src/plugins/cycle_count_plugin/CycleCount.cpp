@@ -27,13 +27,53 @@ class CycleCount : public HookCode {
   //Pipeline pipeline;
   CycleCounter cycleCounter;
 
+  bool has_csv_output = false;
+  string csv_output;
+
+  std::string printLeader() {
+    return "[cycle-count]";
+  }
+
  public:
   // Always execute
   CycleCount(Emulator &emu) : HookCode(emu, "cycle_count"), cycleCounter(emu) {
+    // Get where to store the csv
+    string argument_name = "cycle-count-file=";
+    for (const auto &a : getEmulator().getPluginArguments().getArgs()) {
+      auto pos = a.find(argument_name);
+      if (pos != string::npos) {
+        auto arg_value = a.substr(pos+argument_name.length());
+
+        csv_output = arg_value;
+        if (csv_output == "%") {
+          csv_output = getEmulator().getElfDir() + "/" + getEmulator().getElfName() + ".cyclecount";
+        }
+        has_csv_output = true;
+
+        cout << printLeader() << " writing output to: " << csv_output << endl;
+        break;
+      }
+    }
   }
 
   ~CycleCount() {
-    cout << "The program ran for: " << cycleCounter.cycleCount() << " clock cycles (estimate)" << endl;
+    // Optionally write the cycle count tot a file
+    ofstream CycleCountFile;
+    if (has_csv_output) {
+      CycleCountFile.open(csv_output);
+      if (!CycleCountFile.is_open()) {
+        has_csv_output = false;
+      }
+    }
+
+    if (has_csv_output) {
+      CycleCountFile << cycleCounter.cycleCount() << endl;
+    }
+
+    cout << printLeader()
+         << " the program ran for: " << cycleCounter.cycleCount()
+         << " clock cycles (estimate)" << endl;
+
   }
 
   // Hook run

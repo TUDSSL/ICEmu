@@ -58,6 +58,9 @@ class Pipeline {
         break;
 
       case ARM_INS_LDM:
+      case ARM_INS_LDMDA:
+      case ARM_INS_LDMDB:
+      case ARM_INS_LDMIB:
         instruction_cost = 1 + (operand_count-1); // cost is 1+N where N is the register list (number of op -1)
         break;
 
@@ -75,7 +78,10 @@ class Pipeline {
         instruction_cost = 1+2; // 1+N N=2
         break;
 
+      case ARM_INS_STMDA:
+      case ARM_INS_STMDB:
       case ARM_INS_STM:
+      case ARM_INS_STMIB:
         instruction_cost = 1 + (operand_count-1); // cost is 1+N where N is the register list (number of op -1)
         break;
 
