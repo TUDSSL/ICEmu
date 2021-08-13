@@ -41,7 +41,7 @@ class InstructionProfiling : public HookCode {
 
         csv_output = arg_value;
         if (csv_output == "%") {
-          csv_output = getEmulator().getElfDir() + "/" + getEmulator().getElfName() + ".instructionprofiling";
+          csv_output = getEmulator().getElfDir() + "/" + getEmulator().getElfName() + ".instructionprofiling.csv";
         }
         has_csv_output = true;
 
