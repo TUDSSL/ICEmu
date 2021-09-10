@@ -28,11 +28,40 @@ class MockPutc : public HookFunction {
   string color_start = "\033[1m";
   string color_end = "\033[0m";
 
+  string output_file;
+  ofstream output_file_stream;
+
+  std::string printLeader() {
+    return "[mock-putc]";
+  }
+
   // Always execute
-  MockPutc(Emulator &emu, string fname) : HookFunction(emu, fname) {}
+  MockPutc(Emulator &emu, string fname) : HookFunction(emu, fname) {
+    // Get where to store the log file (if any)
+    string argument_name = "putc-logfile=";
+    for (const auto &a : getEmulator().getPluginArguments().getArgs()) {
+      auto pos = a.find(argument_name);
+      if (pos != string::npos) {
+        auto arg_value = a.substr(pos+argument_name.length());
+
+        output_file = arg_value;
+        if (output_file == "%") {
+          output_file = getEmulator().getElfDir() + "/" + getEmulator().getElfName() + ".stdout";
+        }
+
+        // Open the output file
+        output_file_stream.open(output_file, ios::out);
+
+        cout << printLeader() << " writing output to: " << output_file << endl;
+        break;
+      }
+    }
+
+  }
 
   ~MockPutc() {
     cout << color_end;
+    if (output_file_stream.is_open()) output_file_stream.close();
   }
 
   // Hook run
@@ -45,6 +74,10 @@ class MockPutc : public HookFunction {
     Function::Arguments::parse(reg, farg_char, farg_file);
 
     cout << color_start << farg_char.arg << color_end;
+
+    if (output_file_stream.is_open()) {
+      output_file_stream << farg_char.arg;
+    }
 
     Function::skip(reg, farg_char.arg);
   }
