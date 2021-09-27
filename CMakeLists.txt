@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.15)
 
 project(ICEmu LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Build the libraries
 execute_process(COMMAND bash "-c" ${CMAKE_SOURCE_DIR}/"setup-lib.sh")
 
