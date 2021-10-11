@@ -150,6 +150,7 @@ class CheckpointVerification : public HookMemory {
   armaddr_t last_cp_pc = 0;
 
   map<const armaddr_t, uint64_t> CheckpointCountMap;
+  uint64_t CheckpointCount=0;
 
   list<string> IgnoreFunctions;
   set<armaddr_t> IgnoreFunctionAddrs;
@@ -396,6 +397,7 @@ class CheckpointVerification : public HookMemory {
     last_cp_pc = new_pc;
     addCheckpointStrength(0); // Init to 0
     CheckpointCountMap[new_pc] += 1;
+    CheckpointCount++;
   }
 
  public:
@@ -453,6 +455,7 @@ class CheckpointVerification : public HookMemory {
     writeCheckpointStrengthFile();
     writeUncaughtWarAddrFile();
     writeUncaughtWarFile();
+    cout << printLeader() << " total checkpoint count: " << CheckpointCount << endl;
   }
 
   // Hook run, should never be called
