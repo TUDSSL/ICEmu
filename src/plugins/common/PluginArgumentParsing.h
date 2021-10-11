@@ -10,11 +10,18 @@
 
 namespace PluginArgumentParsing {
 
-typedef std::vector<std::string> arg_t;
+//typedef std::pair<std::vector<std::string>, bool> arg_t;
+
+struct arg_t {
+  std::vector<std::string> args;
+  bool has_magic;
+};
+
 inline arg_t GetArguments(icemu::Emulator &emu,
                                              std::string argument,
                                              bool magic = true) {
   std::vector<std::string> argvals;
+  bool has_magic = false;
 
   for (const auto &a : emu.getPluginArguments().getArgs()) {
     auto pos = a.find(argument);
@@ -26,6 +33,7 @@ inline arg_t GetArguments(icemu::Emulator &emu,
         // '%' changes the name to <elf_path>
         if (arg_value == "%") {
           arg_value = emu.getElfDir() + "/" + emu.getElfName();
+          has_magic = true;
         }
       }
 
@@ -34,7 +42,7 @@ inline arg_t GetArguments(icemu::Emulator &emu,
     }
   }
 
-  return argvals;
+  return arg_t{argvals, has_magic};
 }
 }  // namespace PluginArgumentParsing
 
