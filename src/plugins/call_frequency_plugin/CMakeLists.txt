@@ -7,7 +7,7 @@ add_executable(${PLUGIN_NAME}
 
 target_include_directories(${PLUGIN_NAME}
     PUBLIC
-    "../cycle_count_plugin/"
+    "../common/"
     ${PLUGIN_INCLUDE_DIRECTORIES}
     )
 

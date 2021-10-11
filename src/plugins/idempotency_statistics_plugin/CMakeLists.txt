@@ -7,8 +7,8 @@ add_executable(${PLUGIN_NAME}
 
 target_include_directories(${PLUGIN_NAME}
     PUBLIC
+    "../common"
     ${PLUGIN_INCLUDE_DIRECTORIES}
-    ${PROJECT_SOURCE_DIR}/src/plugins
     )
 
 target_compile_options(${PLUGIN_NAME}

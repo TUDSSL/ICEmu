@@ -7,6 +7,7 @@ add_executable(${PLUGIN_NAME}
 
 target_include_directories(${PLUGIN_NAME}
     PUBLIC
+    "../common"
     ${PLUGIN_INCLUDE_DIRECTORIES}
     )
 

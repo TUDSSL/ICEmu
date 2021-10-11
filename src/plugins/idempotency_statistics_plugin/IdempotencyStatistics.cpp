@@ -21,7 +21,7 @@
 #include "icemu/emu/Function.h"
 #include "icemu/emu/Symbols.h"
 
-#include "cycle_count_plugin/CycleCounter.h"
+#include "CycleCounter.h"
 
 using namespace std;
 using namespace icemu;
