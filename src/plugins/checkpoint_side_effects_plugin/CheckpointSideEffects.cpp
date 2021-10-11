@@ -20,7 +20,10 @@ class CheckpointMarker : public HookCode {
 
  private:
   const symbol_t *checkpoint_function = nullptr;
+  const symbol_t *restore_function = nullptr;
+
   armaddr_t post_checkpoint_address = 0;
+  bool found_restore = false;
 
   std::string printLeader() {
     return "[checkpoint-side-effects]";
@@ -28,18 +31,25 @@ class CheckpointMarker : public HookCode {
 
   map<Registers::reg, armaddr_t> RegisterValueMap;
   std::ostringstream RegBeforeStream;
+  std::ostringstream RegRestoreStream;
 
   void findCheckpointFunction() {
     auto &Symbols = getEmulator().getMemory().getSymbols();
 
+    // Find the checkpoint function
     for (auto &S : Symbols.symbols) {
       if (S.name == "__checkpoint") {
         checkpoint_function = &S;
         cout << printLeader() << " found checkpoint function: " << S.name
              << " at address: 0x" << hex << S.address << dec << endl;
-        break;
+      }
+      else if (S.name == "__checkpoint_restore") {
+        restore_function = &S;
+        cout << printLeader() << " found checkpoint restore function: " << S.name
+             << " at address: 0x" << hex << S.address << dec << endl;
       }
     }
+
   }
 
  public:
@@ -134,30 +144,33 @@ class CheckpointMarker : public HookCode {
 
   // Hook run
   void run(hook_arg_t *arg) {
-    if (checkpoint_function == nullptr) return;
 
     if (post_checkpoint_address == arg->address) {
       auto &Reg = getEmulator().getRegisters();
+
+      cout << printLeader() << " Registers before checkpoint:" << endl;
+      cout << RegBeforeStream.str() << endl;
+      cout << endl;
+
+      cout << printLeader() << " Registers after checkpoint: " << endl;
+      Reg.dump();
+      cout << endl;
+
       if (compareRegisters(Reg) == false) {
         // Check if a returned checkpoint call has the same registers
-        cout << printLeader() << "Registers where:" << endl;
-        cout << RegBeforeStream.str() << endl;
-
+        cout << printLeader() << " FAILURE: REGISTERS ARE NOT THE SAME BEFORE AND AFTER THE CHECKPOINT/RESTORE!" << endl;
         cout << endl;
-        cout << printLeader() << "Registers are: " << endl;
-        Reg.dump();
-
-        cout << "Registers are not the same before and after the checkpoint!" << endl;
-        //getEmulator().stop("Checkpoint error");
+        getEmulator().stop("Checkpoint error!");
       } else {
-        cout << printLeader() << "Registers where:" << endl;
-        cout << RegBeforeStream.str() << endl;
-
+        cout << printLeader() << " MATCHING CHECKPOINT/RESTORE!" << endl;
         cout << endl;
-        cout << printLeader() << "Registers are: " << endl;
-        Reg.dump();
+      }
 
-        cout << printLeader() << " matiching checkpoint" << endl;
+      /*
+       * To avoid looping forever, we stop after checking a restore
+       */
+      if (found_restore == true) {
+        getEmulator().stop("Found restore");
       }
     }
 
@@ -165,8 +178,7 @@ class CheckpointMarker : public HookCode {
     auto call_addr = getBrachAddress(arg->address, arg->size);
     if (call_addr == 0) return;
 
-    if (checkpoint_function->getFuncAddr() == call_addr) {
-
+    if (checkpoint_function != nullptr && checkpoint_function->getFuncAddr() == call_addr) {
       // Get the registers before the call
       auto &Reg = getEmulator().getRegisters();
       saveRegisters(Reg);
@@ -177,10 +189,20 @@ class CheckpointMarker : public HookCode {
       auto PC = Reg.get(Registers::PC);
       auto NewPC = PC + arg->size;
 
+      cout << printLeader() << " CHECKPOINT" << endl;
       cout << printLeader() << " checkpoint address: " << hex << PC << dec << endl;
       cout << printLeader() << " post address: " << hex << NewPC << dec << endl;
 
       post_checkpoint_address = NewPC;
+    }
+
+    else if (restore_function != nullptr && restore_function->getFuncAddr() == call_addr) {
+      cout << printLeader() << " RESTORE" << endl;
+      auto &Reg = getEmulator().getRegisters();
+      cout << printLeader() << " Registers before restore:" << endl;
+      Reg.dump();
+      cout << endl;
+      found_restore = true;
     }
   }
 };
