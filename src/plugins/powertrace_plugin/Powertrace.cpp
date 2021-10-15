@@ -30,13 +30,19 @@ class Powertrace : public HookCode {
   uint64_t on_cycles = 0;
   string powertrace_output_file;
   string powertrace_input_file;
+  string powertrace_stats_file;
 
   uint64_t last_power_off = 0;
+  uint64_t reset_count = 0;
 
   vector<uint64_t> ResetCycles;
   size_t ResetCyclesReadIndex = 0;
 
   bool use_powertrace_input_file = false;
+
+  // Wait untill main before we start applying the powertrace
+  bool bootstrap = true;
+  const symbol_t *main_symbol;
 
  public:
   // Always execute
@@ -44,12 +50,14 @@ class Powertrace : public HookCode {
     /*
      * Process the arguments
      */
-    auto stdev_arg = GetArguments(emu, "powertrace-stdev");
+    auto stdev_arg = GetArguments(emu, "powertrace-stdev=");
     auto on_cycles_arg = GetArguments(emu, "powertrace-on-cycles=");
     auto powertrace_output_file_arg =
         GetArguments(emu, "powertrace-output-file=");
     auto powertrace_input_file_arg =
         GetArguments(emu, "powertrace-input-file=");
+    auto powertrace_stats_file_arg =
+        GetArguments(emu, "powertrace-stats-file=");
 
     if (stdev_arg.args.size()) stdev = std::stoi(stdev_arg.args[0]);
 
@@ -69,6 +77,12 @@ class Powertrace : public HookCode {
       use_powertrace_input_file = true;
     }
 
+    if (powertrace_stats_file_arg.args.size()) {
+      powertrace_stats_file = powertrace_stats_file_arg.args[0];
+      if (powertrace_stats_file_arg.has_magic)
+        powertrace_stats_file = powertrace_stats_file + ".powertrace-stats.csv";
+    }
+
     if (use_powertrace_input_file) {
       cout << printLeader()
            << " reading power-trace input from: " << powertrace_input_file
@@ -78,6 +92,15 @@ class Powertrace : public HookCode {
            << " writing power-trace output to: " << powertrace_output_file
            << endl;
       cout << printLeader() << " ON cycles: " << on_cycles << std::endl;
+    }
+
+    // Find the main symbol for bootstrapping
+    try {
+      main_symbol = emu.getMemory().getSymbols().get("main");
+    } catch (...) {
+      cout << printLeader() << " could not find the main function"
+           << endl;
+      bootstrap = false;
     }
 
     /*
@@ -103,6 +126,32 @@ class Powertrace : public HookCode {
   }
 
   ~Powertrace() {
+    /*
+     * Write the power-trace stats (APPEND!)
+     *  on_cycles_mean, on_cycles_stdev, cycles, reset_count
+     *
+     *  on_cycles_mean = -1 when an input file is used
+     *  on_cycles_mean = 0 when no power failures occur
+     */
+    if (powertrace_stats_file.size() != 0) {
+      ofstream ptsf;
+      ptsf.open(powertrace_stats_file, ios_base::app);
+      if (!ptsf.is_open()) {
+        cout << printLeader() << " could not write to power-trace stats file: " << powertrace_stats_file << endl;
+      } else {
+        cout << printLeader() << " writing power-trace stats to: " << powertrace_stats_file << endl;
+
+        // Write the stats
+        ptsf << (use_powertrace_input_file ? -1 : on_cycles) << ","
+          << stdev << ","
+          << cycleCounter.cycleCount() << ","
+          << reset_count
+          << endl;
+
+        ptsf.close();
+      }
+    }
+
     if (powertrace_output_file.size() != 0) {
       /*
        * Write the reset cycles to a csv file
@@ -119,44 +168,63 @@ class Powertrace : public HookCode {
       }
       ptf.close();
     }
+
+    if (use_powertrace_input_file) {
+      cout << printLeader() << " used input powertrace from file: " << powertrace_input_file << endl;
+    } else {
+      cout << printLeader() << " ON-cycles: " << on_cycles << endl;
+      cout << printLeader() << " ON-cycles stdev: " << stdev << endl;
+    }
+    cout << printLeader() << " total cycle count: " << cycleCounter.cycleCount() << endl;
+    cout << printLeader() << " total reset count: " << reset_count << endl;
   }
 
   void power_failure(uint64_t c) {
     // Trigger a power failure
     // Reset the emulator
     getEmulator().reset();
+    reset_count++;
+    cout << printLeader() << " Power failure at: " << c << std::endl;
 
     setStatus(STATUS_SKIP_REST);
-
-    cout << printLeader() << " EMU RESET at: " << c << std::endl;
   }
 
   // Hook run
   void run(hook_arg_t *arg) {
-    // No powerfailures TODO: skip registering the plugin?
-    if (on_cycles == 0) return;
+    if (on_cycles > 0) {
 
-    // Get the current cycle count
-    auto c = cycleCounter.cycleCount();
+      setStatus(STATUS_OK);
 
-    if (use_powertrace_input_file) {
-      if ((ResetCyclesReadIndex < ResetCycles.size()) &&
-          (c >= ResetCycles[ResetCyclesReadIndex])) {
-        power_failure(c);
+      // Get the current cycle count
+      auto c = cycleCounter.cycleCount();
 
-        last_power_off = c;
-        ResetCyclesReadIndex++;
-        return;
-      }
+      if (use_powertrace_input_file) {
+        if ((ResetCyclesReadIndex < ResetCycles.size()) &&
+            (c >= ResetCycles[ResetCyclesReadIndex])) {
+          power_failure(c);
 
-    } else {
-      // Power failure time?
-      if (c >= (last_power_off + on_cycles)) {
-        power_failure(c);
+          last_power_off = c;
+          ResetCyclesReadIndex++;
+          return;
+        }
 
-        last_power_off = c;
-        ResetCycles.push_back(c);
-        return;
+      } else {
+        if (bootstrap) {
+          if (arg->address == main_symbol->getFuncAddr()) {
+            // Start the actual powertrace
+            bootstrap = false;
+            last_power_off = c;
+            cout << printLeader() << " Finished bootstrap at: " << c << std::endl;
+          }
+        }
+        // Power failure time?
+        else if (c >= (last_power_off + on_cycles)) {
+          power_failure(c);
+
+          last_power_off = c;
+          ResetCycles.push_back(c);
+          return;
+        }
       }
     }
 
