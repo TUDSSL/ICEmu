@@ -32,7 +32,8 @@ class CheckpointMarker : public HookCode {
 
   void collectMarkerFunctions() {
     auto &Symbols = getEmulator().getMemory().getSymbols();
-    string Marker = "__checkpoint_marker_";
+    //string Marker = "__checkpoint_marker_";
+    string Marker = "__checkpoint";
 
     for (auto &S : Symbols.symbols) {
       auto &str = S.name;
@@ -146,6 +147,9 @@ class CheckpointMarker : public HookCode {
         auto &Reg = getEmulator().getRegisters();
         auto PC = Reg.get(Registers::PC);
         auto NewPC = PC + arg->size+1; // thumb is off by one
+
+        //auto LR = Reg.get(Registers::LR);
+        //cout << "PC: " << std::hex << PC << " LR: " << LR << " NEW: " << NewPC << std::dec << std::endl;
 
         // Skip the call
         Reg.set(Registers::PC, NewPC);
