@@ -31,6 +31,7 @@ class Powertrace : public HookCode {
   string powertrace_output_file;
   string powertrace_input_file;
   string powertrace_stats_file;
+  uint64_t powertrace_freq = 0;
 
   uint64_t last_power_off = 0;
   uint64_t reset_count = 0;
@@ -43,6 +44,24 @@ class Powertrace : public HookCode {
   // Wait untill main before we start applying the powertrace
   bool bootstrap = true;
   const symbol_t *main_symbol;
+
+  // Used for looping the trace file
+  uint64_t tracefile_offset = 0;
+
+  /*
+   * Convert a tick from a powertrace file to a clock tick
+   * if the powertrace_freq is not set (or 0) the numbers in the powertrace
+   * file map directly to clock cycles. Otherwise they are interpreted as
+   * ms and converted to clock cycles using the provided freq of the processor
+   */
+  uint64_t tick2clock(uint64_t t) {
+    if (powertrace_freq == 0) return t;
+    // Convert ms to clock cycles
+    uint64_t c = t*((double)powertrace_freq/1000.0);
+    cout << "Converted " << t << "ms to " << c << " cycles" << endl;
+
+    return c;
+  }
 
  public:
   // Always execute
@@ -58,6 +77,8 @@ class Powertrace : public HookCode {
         GetArguments(emu, "powertrace-input-file=");
     auto powertrace_stats_file_arg =
         GetArguments(emu, "powertrace-stats-file=");
+    auto powertrace_freq_arg =
+        GetArguments(emu, "powertrace-freq=");
 
     if (stdev_arg.args.size()) stdev = std::stoi(stdev_arg.args[0]);
 
@@ -94,6 +115,12 @@ class Powertrace : public HookCode {
       cout << printLeader() << " ON cycles: " << on_cycles << std::endl;
     }
 
+    // If the frequency arg is set, we assume that the file contains time
+    // in miliseconds (ms) not clock cycles
+    if (powertrace_freq_arg.args.size()) {
+      powertrace_freq = std::stoi(powertrace_freq_arg.args[0]);
+    }
+
     // Find the main symbol for bootstrapping
     try {
       main_symbol = emu.getMemory().getSymbols().get("main");
@@ -118,7 +145,7 @@ class Powertrace : public HookCode {
       string line;
       while (getline(ptf, line)) {
         uint64_t c = stoi(line);
-        ResetCycles.push_back(c);
+        ResetCycles.push_back(tick2clock(c));
       }
 
       ptf.close();
@@ -191,23 +218,41 @@ class Powertrace : public HookCode {
 
   // Hook run
   void run(hook_arg_t *arg) {
-    if (on_cycles > 0) {
+    if (on_cycles > 0 || use_powertrace_input_file) {
 
       setStatus(STATUS_OK);
 
       // Get the current cycle count
       auto c = cycleCounter.cycleCount();
 
+      // Power trace file
       if (use_powertrace_input_file) {
-        if ((ResetCyclesReadIndex < ResetCycles.size()) &&
-            (c >= ResetCycles[ResetCyclesReadIndex])) {
+        if (bootstrap) {
+          if (arg->address == main_symbol->getFuncAddr()) {
+            // Start the actual powertrace
+            bootstrap = false;
+            last_power_off = c;
+            tracefile_offset = c;
+            cout << printLeader() << " Finished bootstrap at: " << c << std::endl;
+          }
+        } else if ((ResetCyclesReadIndex < ResetCycles.size()) &&
+            (c >= (ResetCycles[ResetCyclesReadIndex]+tracefile_offset))) {
           power_failure(c);
 
           last_power_off = c;
           ResetCyclesReadIndex++;
+
+          // Loop the trace file
+          if (ResetCyclesReadIndex == ResetCycles.size()) {
+            cout << printLeader() << " Looping trace file" << endl;
+            ResetCyclesReadIndex = 0;
+            tracefile_offset += ResetCycles[ResetCycles.size()-1];
+          }
+
           return;
         }
 
+      // Power trace generation
       } else {
         if (bootstrap) {
           if (arg->address == main_symbol->getFuncAddr()) {
