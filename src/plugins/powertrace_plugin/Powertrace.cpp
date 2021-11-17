@@ -169,8 +169,12 @@ class Powertrace : public HookCode {
         cout << printLeader() << " writing power-trace stats to: " << powertrace_stats_file << endl;
 
         // Write the stats
-        ptsf << (use_powertrace_input_file ? -1 : on_cycles) << ","
-          << stdev << ","
+        if (use_powertrace_input_file) {
+          ptsf << powertrace_input_file << ",";
+        } else {
+          ptsf << on_cycles << ",";
+        }
+        ptsf << stdev << ","
           << cycleCounter.cycleCount() << ","
           << reset_count
           << endl;
