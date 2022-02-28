@@ -3,13 +3,13 @@
 	url = https://github.com/unicorn-engine/unicorn
 [submodule "lib/capstone"]
 	path = lib/capstone
-	url = git@github.com:aquynh/capstone.git
+	url = https://github.com/aquynh/capstone.git
 [submodule "lib/jsoncpp"]
 	path = lib/jsoncpp
-	url = git@github.com:open-source-parsers/jsoncpp.git
+	url = https://github.com/open-source-parsers/jsoncpp.git
 [submodule "lib/ELFIO"]
 	path = lib/ELFIO
-	url = git@github.com:serge1/ELFIO.git
+	url = https://github.com/serge1/ELFIO.git
 [submodule "arm-code/apps/coremark/coremark"]
 	path = arm-code/apps/coremark/coremark
-	url = git@github.com:eembc/coremark.git
+	url = https://github.com/eembc/coremark.git
