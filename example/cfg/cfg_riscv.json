@@ -1,0 +1,19 @@
+{
+  "memory": [
+    {
+      "name": "ROMEM",
+      "origin": "0x0000C000",
+      "length": "960K"
+    },
+    {
+      "name": "RWMEM",
+      "origin": "0x80000000",
+      "length": "384K"
+    },
+    {
+      "name": "SYSTEM_CONTROL_REGISTERS",
+      "origin": "0xE000E000",
+      "length": "3840"
+    }
+  ]
+}
