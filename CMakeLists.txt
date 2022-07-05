@@ -5,11 +5,11 @@ project(ICEmu LANGUAGES CXX)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Build the libraries
-execute_process(COMMAND bash "-c" ${CMAKE_SOURCE_DIR}/"setup-lib.sh")
+#execute_process(COMMAND bash "-c" ${CMAKE_SOURCE_DIR}/"setup-lib.sh")
 
 #Include Unicorn
 include_directories(${CMAKE_SOURCE_DIR}/lib/unicorn/include)
-link_directories(${CMAKE_SOURCE_DIR}/lib/unicorn)
+link_directories(${CMAKE_SOURCE_DIR}/lib/unicorn/build)
 
 #Include Capstone
 include_directories(${CMAKE_SOURCE_DIR}/lib/capstone/include)

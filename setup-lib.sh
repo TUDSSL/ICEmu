@@ -9,7 +9,8 @@ pushd lib
 
 pushd unicorn
 echo "Build unicorn"
-UNICORN_ARCHS="arm" UNICORN_QEMU_FLAGS="--python=/usr/bin/python2" ./make.sh
+#UNICORN_ARCHS="arm" UNICORN_QEMU_FLAGS="--python=/usr/bin/python2" ./make.sh
+./make.sh
 popd
 
 pushd capstone
