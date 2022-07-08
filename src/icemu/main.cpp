@@ -9,7 +9,6 @@
 #include "icemu/emu/types.h"
 #include "icemu/ArgParse.h"
 #include "icemu/Config.h"
-#include "icemu/MemoryDump.h"
 #include "icemu/emu/Emulator.h"
 #include "icemu/emu/Memory.h"
 #include "icemu/util/ElapsedTime.h"
@@ -46,20 +45,7 @@ int main(int argc, char **argv) {
   }
 
   /* Add all the configuration files in order they appeared in */
-  vector<string> cfg_files = args.vm["config-file"].as<vector <string> >();
-  Config cfg;
-
-  for (const auto &cfg_file : cfg_files) {
-    cfg.add(cfg_file);
-    if (cfg.bad()) {
-      break;
-    }
-  }
-
-  if (cfg.bad()) {
-    cerr << "Bad configuration" << endl;
-    exit(EXIT_FAILURE);
-  }
+  Config cfg(args);
 
   Memory mem(cfg, args.vm["elf-file"].as<string>());
   if (mem.bad()) {
@@ -74,7 +60,7 @@ int main(int argc, char **argv) {
   mem.populate();
 
   /* Run emulation */
-  Emulator emu(cfg, mem);
+  Emulator emu(mem.elf_arch, cfg, mem);
   emu.init();
 
   /* Add the plugin arguments */
@@ -86,13 +72,6 @@ int main(int argc, char **argv) {
 
   /* Register all builtin hooks */
   BuiltinHooks::registerHooks(emu, emu.getHookManager());
-
-  // Register the hooks in the configuration file
-  for (const auto &plugins : emu.getConfig().settings["plugins"]) {
-    string p = plugins["plugin"].asString();
-    cout << "Loading plugin: " << p << " (configuration file)" << endl;
-    plugin_manager.add(p);
-  }
 
   // Register the hooks passed as arguments
   // Get the plugin files from the arguments
@@ -114,31 +93,13 @@ int main(int argc, char **argv) {
   runtime.stop();
 
   cout << "Emulation ended" << endl;
-  cout << "Result register: " << emu.getRegisters().get(Registers::RETURN) << endl;
+  cout << "Result register: "
+       << emu.getArchitecture().registerGet(Architecture::REG_RETURN)
+       << endl;
 
   // Get the runtime of the emulation
   auto s = runtime.get_s();
   cout << "Emulation time: " << s << "s" << endl;
-
-  // Dump the registers if required
-  if (args.vm.count("dump-reg")) {
-    string filename = args.vm["dump-prefix"].as<string>() + "reg.txt";
-    cout << "Dumping Registers to file: " << filename << endl;
-    ofstream outfile;
-    outfile.open(filename, ios::out | ios::trunc);
-    emu.getRegisters().dump(outfile);
-    outfile.close();
-  }
-
-  // Dump the memory if required
-  if (args.vm.count("dump-bin")) {
-    string dump_prefix = args.vm["dump-prefix"].as<string>();
-    MemoryDump::dump(emu.getMemory(), dump_prefix, MemoryDump::BIN);
-  }
-  if (args.vm.count("dump-hex")) {
-    string dump_prefix = args.vm["dump-prefix"].as<string>();
-    MemoryDump::dump(emu.getMemory(), dump_prefix, MemoryDump::HEX);
-  }
 
   return EXIT_SUCCESS;
 }

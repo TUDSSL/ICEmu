@@ -81,10 +81,6 @@ class CallCount : public HookCode {
     }
   }
 
-  armaddr_t getCallAddr(armaddr_t address) const {
-    return (address & ~0x1) - 4;
-  }
-
   ~CallCount() {
     ofstream CallCountFile;
     if (has_csv_output) {

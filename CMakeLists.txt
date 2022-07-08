@@ -15,10 +15,6 @@ link_directories(${CMAKE_SOURCE_DIR}/lib/unicorn/build)
 include_directories(${CMAKE_SOURCE_DIR}/lib/capstone/include)
 link_directories(${CMAKE_SOURCE_DIR}/lib/capstone)
 
-#Include JsonCPP
-include_directories(${CMAKE_SOURCE_DIR}/lib/jsoncpp/include)
-link_directories(${CMAKE_SOURCE_DIR}/lib/jsoncpp/build/lib)
-
 #Include ElfIO
 include_directories(${CMAKE_SOURCE_DIR}/lib/ELFIO)
 
@@ -38,10 +34,10 @@ endif()
 add_subdirectory(src/icemu)
 
 # Build the plugins
-add_subdirectory(src/plugins)
+#add_subdirectory(src/plugins)
 
 # Build the examples (TODO: Make optional)
-add_subdirectory(example/plugin)
+#add_subdirectory(example/plugin)
 
 # Build ARM code using GCC
 add_custom_target(arm-gcc

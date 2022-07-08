@@ -44,7 +44,8 @@ bool Emulator::run() {
 
   reset();
 
-  const uint64_t emu_start_addr = getMemory().entrypoint | 1;
+  //const uint64_t emu_start_addr = getMemory().entrypoint | 1;
+  const uint64_t emu_start_addr = getMemory().entrypoint;
   const uint64_t emu_stop_addr = 0; // Address 0 should never be executed, so run forever
   uc_err err = uc_emu_start(uc, emu_start_addr, emu_stop_addr, 0, 0);
   if (err) {
@@ -56,24 +57,7 @@ bool Emulator::run() {
 }
 
 void Emulator::reset() {
-  const uint64_t emu_start_addr = getMemory().entrypoint | 1;
-  const uint64_t regset = 0;
-
-  uc_reg_write(uc, UC_ARM_REG_R0, &regset);
-  uc_reg_write(uc, UC_ARM_REG_R1, &regset);
-  uc_reg_write(uc, UC_ARM_REG_R2, &regset);
-  uc_reg_write(uc, UC_ARM_REG_R3, &regset);
-  uc_reg_write(uc, UC_ARM_REG_R4, &regset);
-  uc_reg_write(uc, UC_ARM_REG_R5, &regset);
-  uc_reg_write(uc, UC_ARM_REG_R6, &regset);
-  uc_reg_write(uc, UC_ARM_REG_R7, &regset);
-  uc_reg_write(uc, UC_ARM_REG_R8, &regset);
-  uc_reg_write(uc, UC_ARM_REG_R9, &regset);
-  uc_reg_write(uc, UC_ARM_REG_R10, &regset);
-  uc_reg_write(uc, UC_ARM_REG_R11, &regset);
-  uc_reg_write(uc, UC_ARM_REG_R12, &regset);
-
-  uc_reg_write(uc, UC_ARM_REG_PC, &emu_start_addr);
+  architecture.registerSet(Architecture::REG_PC, getMemory().entrypoint);
 }
 
 static void hook_code_cb(uc_engine *uc, uint64_t address, uint32_t size, void *user_data) {
@@ -85,8 +69,8 @@ static void hook_code_cb(uc_engine *uc, uint64_t address, uint32_t size, void *u
 
   // Build the argument struct
   HookCode::hook_arg_t arg;
-  arg.address = (armaddr_t)address;
-  arg.size = (armaddr_t)size;
+  arg.address = (address_t)address;
+  arg.size = (address_t)size;
 
   hook_manager.run(address, &arg);
 }
@@ -100,9 +84,9 @@ static void hook_memory_cb(uc_engine *uc, uc_mem_type type, uint64_t address, in
 
   // Build the argument struct
   HookMemory::hook_arg_t arg;
-  arg.address = (armaddr_t)address;
-  arg.size = (armaddr_t)size;
-  arg.value = (armaddr_t)value;
+  arg.address = (address_t)address;
+  arg.size = (address_t)size;
+  arg.value = (address_t)value;
 
   switch (type) {
     case UC_MEM_READ:
@@ -169,7 +153,7 @@ void Emulator::stop(string reason) {
 }
 
 // TODO: Should probably make a "C++" version using a vector or something
-bool Emulator::readMemory(armaddr_t address, char *result, armaddr_t size)
+bool Emulator::readMemory(address_t address, char *result, address_t size)
 {
   uc_err err = uc_mem_read(uc, address, result, size);
   if (err != UC_ERR_OK) {

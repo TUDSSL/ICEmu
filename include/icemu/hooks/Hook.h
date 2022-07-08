@@ -32,23 +32,23 @@ class Hook {
   };
 
   struct hook_arg {
-    armaddr_t address;
-    armaddr_t size;
+    address_t address;
+    address_t size;
   };
 
   std::string name;
-  armaddr_t low;
-  armaddr_t high;
+  address_t low;
+  address_t high;
   enum hook_type type = TYPE_UNINITIALIZED;
 
-  explicit Hook(Emulator &emu, std::string hookname, armaddr_t addrlow, armaddr_t addrhigh) : emu_(emu) {
+  explicit Hook(Emulator &emu, std::string hookname, address_t addrlow, address_t addrhigh) : emu_(emu) {
     type = TYPE_RANGE;
     name = hookname;
     low = addrlow;
     high = addrhigh;
   }
 
-  explicit Hook(Emulator &emu, std::string hookname, armaddr_t addr) : emu_(emu) {
+  explicit Hook(Emulator &emu, std::string hookname, address_t addr) : emu_(emu) {
     type = TYPE_RANGE;
     name = hookname;
     low = addr;

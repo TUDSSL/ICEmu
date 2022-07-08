@@ -38,13 +38,13 @@ class DisplayInstructions : public HookCode {
 
     ok = getEmulator().readMemory(address, (char *)instruction, size);
     if (!ok) {
-      cerr << printLeader() << " failed to read memory for instruction at address " << address << endl;
+      cerr << printLeader() << " failed to read memory for instruction at address 0x" << hex << address << dec << endl;
       return;
     }
     cs_insn *insn;
     size_t cnt = cs_disasm(*getEmulator().getCapstoneEngine(), instruction, size, address, 0, &insn);
     if (cnt == 0) {
-      cerr << printLeader() << " failed to disasemble instruction at address " << address << endl;
+      cerr << printLeader() << " failed to disasemble instruction at address 0x" << hex << address << dec << endl;
       return;
     }
 
@@ -61,6 +61,11 @@ class DisplayInstructions : public HookCode {
   // Hook run
   void run(hook_arg_t *arg) {
     displayInstruction(arg->address, arg->size);
+
+    if (arg->address == 0x800025e8L) {
+        cout << "Reached tohost_exit";
+        getEmulator().stop("Reached tohost_exit");
+    }
   }
 };
 

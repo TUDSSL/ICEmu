@@ -12,8 +12,8 @@ namespace BuiltinHooks {
 
   void registerHooks(Emulator &emu, HookManager &hm) {
     hm.add(new HookInstructionCount(emu)); // Instruction count hook
-    hm.add(new HookControlRegisters(emu)); // Handle control register access
-    hm.add(new HookStopEmulation(emu)); // Stop emulation hook
+    //hm.add(new HookControlRegisters(emu)); // Handle control register access
+    //hm.add(new HookStopEmulation(emu)); // Stop emulation hook
   }
 
 }

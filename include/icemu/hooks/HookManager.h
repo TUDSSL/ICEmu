@@ -48,11 +48,11 @@ class HookManager {
     hooks_memory_.add(hook);
   }
 
-  void run(armaddr_t address, HookCode::hook_arg_t *arg) {
+  void run(address_t address, HookCode::hook_arg_t *arg) {
     hooks_code_.run(address, arg);
   }
 
-  void run(armaddr_t address, HookMemory::hook_arg_t *arg) {
+  void run(address_t address, HookMemory::hook_arg_t *arg) {
     hooks_memory_.run(address, arg);
   }
 

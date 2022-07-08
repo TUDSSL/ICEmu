@@ -40,7 +40,7 @@ class HookControlRegisters : public HookMemory {
   }
 
   void run(hook_arg_t *arg) {
-    armaddr_t addr = arg->address;
+    address_t addr = arg->address;
 
     if (arg->mem_type == HookMemory::MEM_READ) {
       if (verbose) std::cout << "[CTRL-REGISTER] read" << std::endl;

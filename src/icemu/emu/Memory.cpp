@@ -2,6 +2,7 @@
 #include <cstring>
 #include <iostream>
 #include <vector>
+#include <assert.h>
 
 #include "elfio/elfio.hpp"
 
@@ -12,31 +13,8 @@ using namespace ELFIO;
 using namespace std;
 using namespace icemu;
 
-static armaddr_t length_string_to_numb(string len_str) {
-  size_t suffix_idx;
-  armaddr_t len;
-
-  len = stol(len_str, &suffix_idx, 10);  // TODO: is this always base 10?
-
-  // Parse the suffix, i.e. K or M
-  string suffix = len_str.substr(suffix_idx);
-  if (suffix.length()) {
-    // There is a suffix
-    if (suffix.compare("K") == 0) {
-      len *= 1024;
-    } else if (suffix.compare("M") == 0) {
-      len *= (1000 * 1024);
-    } else {
-      cerr << "Unknown suffix in length: " << len_str << endl;
-      return 0;
-    }
-  }
-
-  return len;
-}
-
-size_t Memory::map_segment_to_memory(armaddr_t *origin, armaddr_t *length) {
-  armaddr_t low, high;
+size_t Memory::map_segment_to_memory(address_t *origin, address_t *length) {
+  address_t low, high;
   low = *origin;
   high = *origin + *length;
 
@@ -44,8 +22,8 @@ size_t Memory::map_segment_to_memory(armaddr_t *origin, armaddr_t *length) {
   for (i = 0; i < memory.size(); i++) {
     auto &m = memory.at(i);
 
-    armaddr_t m_low = m.origin;
-    armaddr_t m_high = m.origin + m.length;
+    address_t m_low = m.origin;
+    address_t m_high = m.origin + m.length;
 
     if (((low >= m_low) && (low <= m_high)) ||
         ((high >= m_low) && (high <= m_high))) {
@@ -70,15 +48,14 @@ size_t Memory::map_segment_to_memory(armaddr_t *origin, armaddr_t *length) {
 /*
  * Collect the sections and init fields from the elf file
  * and the config
- * TODO: Add error handling for the JSON reader??
  */
 bool Memory::collect() {
   /* Get the memory sections from the config */
-  for (const auto &m : cfg_.settings["memory"]) {
+  for (const auto &mr : cfg_.getMemoryRegions()) {
     memseg_t memseg;
-    memseg.name = m["name"].as<string>();
-    memseg.origin = stol(m["origin"].as<string>(), nullptr, 16);
-    memseg.length = length_string_to_numb(m["length"].as<string>());
+    memseg.name = mr.name;
+    memseg.origin = mr.origin;
+    memseg.length = mr.length;
 
     memory.push_back(memseg);
   }
@@ -92,12 +69,35 @@ bool Memory::collect() {
   /* Get the entry point */
   entrypoint = elf_reader.get_entry();
 
+  /* Get the architecture */
+  /* https://en.wikipedia.org/wiki/Executable_and_Linkable_Format */
+  unsigned char e_machine = elf_reader.get_machine();
+  unsigned char e_class = elf_reader.get_class();
+
+  cerr << "Class: " << (uint32_t)e_class;
+
+  // ARMv7 32-bit
+  if (e_machine == 0x28 && e_class == 1) {
+    elf_arch = Arch::EMU_ARCH_ARMV7;
+  } 
+  // RISCV 64-bit
+  else if (e_machine == 0xF3 && e_class == 2) {
+    elf_arch = Arch::EMU_ARCH_RISCV64;
+  }
+  // Unknown
+  else {
+    cerr << "ELF architecture not supported" << endl;
+    cerr << "ELF class: " << (uint32_t)e_class << endl;
+    cerr << "ELF machine: " << (uint32_t)e_machine << endl;
+    assert(false);
+  }
+
   size_t seg_num = elf_reader.segments.size();
   for (size_t i = 0; i < seg_num; i++) {
     const segment *pseg = elf_reader.segments[i];
 
-    armaddr_t seg_origin = pseg->get_physical_address();
-    armaddr_t seg_length = pseg->get_file_size();
+    address_t seg_origin = pseg->get_physical_address();
+    address_t seg_length = pseg->get_file_size();
 
     if (seg_length == 0) {
       continue;
@@ -125,7 +125,7 @@ bool Memory::collect() {
 
       // We might have skipped garbage by reducing the length, so
       // we need to calculate the offset
-      armaddr_t offset = seg_origin - pseg->get_physical_address();
+      address_t offset = seg_origin - pseg->get_physical_address();
 
       // Copy the data
       memcpy(mload.data, &pseg->get_data()[offset], mload.length);
@@ -217,7 +217,7 @@ memseg_t *Memory::find(string memseg_name) {
   return nullptr;
 }
 
-memseg_t *Memory::find(armaddr_t address) {
+memseg_t *Memory::find(address_t address) {
   for (auto &ms : memory) {
     if (address >= ms.origin && address < (ms.origin + ms.length)) {
       return &ms;
@@ -226,7 +226,7 @@ memseg_t *Memory::find(armaddr_t address) {
   return nullptr;
 }
 
-char *Memory::at(armaddr_t address) {
+char *Memory::at(address_t address) {
   auto mseg = find(address);
   char *data_start = (char *)&mseg->data[address - mseg->origin];
   return data_start;
