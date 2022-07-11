@@ -1,2 +1,2 @@
 # RISCV64 specific arguments for ICEmu
-ARGS=""
+ARGS="-m RWMEM:0x80000000:512K"
