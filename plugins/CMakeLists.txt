@@ -42,6 +42,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 add_subdirectory(display_instructions_plugin)
 add_subdirectory(call_count_plugin)
+add_subdirectory(mock_putc_plugin)
 
 # Legacy plugins, not tested with the currecnt version of ICEmu
 #add_subdirectory(callsite_count_plugin)

@@ -15,7 +15,6 @@
 #include "icemu/hooks/HookFunction.h"
 #include "icemu/hooks/HookManager.h"
 #include "icemu/hooks/RegisterHook.h"
-#include "icemu/emu/Function.h"
 
 
 using namespace std;
@@ -67,19 +66,19 @@ class MockPutc : public HookFunction {
   // Hook run
   void run(hook_arg_t *arg) {
     (void)arg;
-    Registers &reg = getRegisters();
 
-    Function::Argument<char> farg_char;
-    Function::Argument<uint32_t> farg_file; // Unused
-    Function::Arguments::parse(reg, farg_char, farg_file);
+    auto &arch = getEmulator().getArchitecture();
+    char arg_char = arch.functionGetArgument(0);
+    //uint32_t arg_file = arch.functionGetArgument(1); // Unused
 
-    cout << color_start << farg_char.arg << color_end;
+    cout << color_start << arg_char << color_end;
 
     if (output_file_stream.is_open()) {
-      output_file_stream << farg_char.arg;
+      output_file_stream << arg_char;
     }
 
-    Function::skip(reg, farg_char.arg);
+    arch.functionSetReturn((uint32_t)arg_char); // Return the character that was printed
+    arch.functionSkip();
   }
 };
 
