@@ -1,2 +1,5 @@
 # ARMV7 specific arguments for ICEmu
 ARGS="-m ROMEM:0x0000C000:960K -m RWMEM:0x10000000:384K -m SYSTEM_CONTROL_REGISTERS:0xE000E000:3840"
+PLUGINS=(
+  "armv7_stop_emulation_plugin.so"
+)

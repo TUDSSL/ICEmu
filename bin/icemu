@@ -22,7 +22,6 @@ fi
 # Array with plugin directories
 PLUGIN_DIR+=("$DIR/../plugins/build/lib")
 
-
 ## Config directories
 CONFIG_DIR+=(".")
 CONFIG_DIR+=("$DIR/cfg")
@@ -52,7 +51,7 @@ function findfile() {
         local ffile="$fname"
     fi
 
-    echo "$ffile"
+    echo "$(realpath $ffile)"
 }
 
 function showfiles() {
@@ -168,7 +167,15 @@ fi
 
 # Source the config file (populates ARGS)
 ARGS=""
+PLUGINS=("")
+
 source "$config_file"
+
+# Get architecture specific plugins
+for plug in ${PLUGINS[@]}; do
+  plugin="$(findfile "$plug" "${PLUGIN_DIR[@]}")"
+  pass_args+="-p $plugin "
+done
 
 # Build the command
 cmd="$ICEmu $ARGS $pass_args"

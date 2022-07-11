@@ -1,2 +1,5 @@
 # RISCV64 specific arguments for ICEmu
 ARGS="-m RWMEM:0x80000000:512K"
+PLUGINS=(
+  "riscv64_stop_emulation_plugin.so"
+)
