@@ -12,7 +12,6 @@
 #include "icemu/hooks/HookFunction.h"
 #include "icemu/hooks/HookManager.h"
 #include "icemu/hooks/RegisterHook.h"
-#include "icemu/emu/Function.h"
 
 using namespace std;
 using namespace icemu;
@@ -51,9 +50,9 @@ class MockClockfunc : public HookFunction {
   // Hook run
   void run(hook_arg_t *arg) {
     (void)arg;
-    Registers &reg = getRegisters();
-    Function::setReturn64(reg, hook_instr_cnt->icnt);
-    Function::skip(reg);
+    auto &arch = getArchitecture();
+    arch.functionSetReturn((uint64_t)hook_instr_cnt->icnt);
+    arch.functionSkip();
   }
 };
 
