@@ -2,7 +2,6 @@
 add_executable(${PROJECT_NAME}
     "main.cpp"
     "ArgParse.cpp"
-    "MemoryDump.cpp"
     "emu/Memory.cpp"
     "emu/Emulator.cpp"
     )
@@ -73,7 +72,6 @@ target_link_libraries(${PROJECT_NAME}
     m
     unicorn
     capstone
-    jsoncpp
     boost_program_options
     dl
     boost_system

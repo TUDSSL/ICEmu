@@ -8,22 +8,23 @@
 
 #include "elfio/elfio.hpp"
 
+#include "icemu/emu/types.h"
 #include "icemu/Config.h"
 #include "icemu/emu/Symbols.h"
 
 namespace icemu {
 
 typedef struct memload {
-  armaddr_t origin;
-  armaddr_t length;
+  address_t origin;
+  address_t length;
 
   uint8_t *data = NULL;
 } memload_t;
 
 typedef struct memseg {
   std::string name;
-  armaddr_t origin;
-  armaddr_t length;
+  address_t origin;
+  address_t length;
 
   std::vector<memload_t> memload;  // Sections part of this segment
 
@@ -37,7 +38,7 @@ class Memory {
   std::string elf_file_;
   Config &cfg_;
 
-  size_t map_segment_to_memory(armaddr_t *origin, armaddr_t *length);
+  size_t map_segment_to_memory(address_t *origin, address_t *length);
   bool collect();
   bool allocate();
 
@@ -45,7 +46,9 @@ class Memory {
   ELFIO::elfio elf_reader;
   std::vector<memseg_t> memory;
   Symbols symbols;
-  armaddr_t entrypoint = 0;
+  address_t entrypoint = 0;
+
+  Arch elf_arch;
 
   Memory(Config &cfg, std::string elf_file) : cfg_(cfg) {
     elf_file_ = elf_file;
@@ -67,8 +70,8 @@ class Memory {
 
   void populate();
   memseg_t *find(std::string memseg_name);
-  memseg_t *find(armaddr_t address);
-  char *at(armaddr_t address);
+  memseg_t *find(address_t address);
+  char *at(address_t address);
 
   Symbols &getSymbols() { return symbols; }
 

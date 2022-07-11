@@ -4,9 +4,6 @@
 [submodule "lib/capstone"]
 	path = lib/capstone
 	url = https://github.com/aquynh/capstone.git
-[submodule "lib/jsoncpp"]
-	path = lib/jsoncpp
-	url = https://github.com/open-source-parsers/jsoncpp.git
 [submodule "lib/ELFIO"]
 	path = lib/ELFIO
 	url = https://github.com/serge1/ELFIO.git

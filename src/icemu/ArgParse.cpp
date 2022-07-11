@@ -26,14 +26,10 @@ bool ArgParse::parse(int argc, char **argv) {
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help,h", "produce help message")
-        ("config-file,c", po::value< vector<string> >()->required(), "json config file")
         ("elf-file,e", po::value<string>(), "elf input file")
+        ("memory-region,m", po::value< vector<string> >(), "memory region: NAME:HEX_ORIGIN:SIZE e.g., RWMEM:0x10000000:384K (can be passed multiple times)")
         ("plugin,p", po::value< vector<string> >(), "load plugin (can be passed multiple times)")
-        ("plugin-arg,a", po::value< vector<string> >(), "arguments accessable to the plugins")
-        ("dump-hex,x", "dump hex file of the memory regions at completion")
-        ("dump-bin,b", "dump bin file of the memory regions at completion")
-        ("dump-reg,r", "dump file with the register values at completion")
-        ("dump-prefix", po::value<string>()->default_value("dump-"), "dump file prefix");
+        ("plugin-arg,a", po::value< vector<string> >(), "arguments accessable to the plugins");
 
     po::positional_options_description p;
     p.add("elf-file", -1);
@@ -51,6 +47,13 @@ bool ArgParse::parse(int argc, char **argv) {
     if (!vm.count("elf-file")) {
       cout << "\nError: Missing elf program file\n\n";
       cout << "Usage: options_description [options] program.elf\n";
+      cout << desc;
+      return false;
+    }
+
+    if (!vm.count("memory-region")) {
+      cout << "Usage: options_description [options] program.elf\n";
+      cout << "\nError: Expecting at least one memory region\n\n";
       cout << desc;
       return false;
     }

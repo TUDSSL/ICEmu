@@ -4,7 +4,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 ICEmu="$DIR/../build/ICEmu"
 
-DEFAULT_CONFIG="cfg_armv7.json"
+DEFAULT_ARMV7_CFG="$DIR/cfg/armv7"
+DEFAULT_RISCV64_CFG="$DIR/cfg/riscv64"
 
 ## Plugin directories
 PLUGIN_DIR+=(".")
@@ -19,12 +20,12 @@ if [ ! ${#PLUGIN_DIR_ENV[@]} -eq 0 ]; then
 fi
 
 # Array with plugin directories
-PLUGIN_DIR+=("$DIR/../build/example-plugins")
-PLUGIN_DIR+=("$DIR/../build/plugins")
+PLUGIN_DIR+=("$DIR/../plugins/build/lib")
 
 
 ## Config directories
 CONFIG_DIR+=(".")
+CONFIG_DIR+=("$DIR/cfg")
 
 # Read the environment variable ICEMU_CONFIG_PATH
 IFS=':'
@@ -34,8 +35,6 @@ IFS=' '
 if [ ! ${#CONFIG_DIR_ENV[@]} -eq 0 ]; then
     CONFIG_DIR+=("${CONFIG_DIR_ENV[@]}")
 fi
-
-CONFIG_DIR+=("$DIR/../example/cfg")
 
 function findfile() {
     local ffile=""
@@ -65,7 +64,8 @@ function showfiles() {
     done
 }
 
-config_provided=false
+config_file=""
+elf_file=""
 
 while (( "$#" )); do
     case $1 in
@@ -79,12 +79,10 @@ while (( "$#" )); do
             ;;
         -c|--config-file)
             #echo "found config arg"
-            pass_args+="$1 "
             config="$(findfile "$2" "${CONFIG_DIR[@]}")"
-            pass_args+="$config "
+            config_file=$(realpath "$config")
             shift
             shift
-            config_provided=true
             ;;
         -h|--help)
             echo "ICEmu wrapper scipt"
@@ -96,9 +94,11 @@ while (( "$#" )); do
         --help-wrapper)
             echo "ICEmu wrapper script options:"
             echo "  --help-wrapper        produce this wrapper help message"
+            echo "  -p,--plugin           plugin file name (searches in '.' and plugin dirs)"
+            echo "  -c,--config-file      configuration file name (searches in '.' and cfg dirs) use 'none' for no config"
+            echo "  --no-config           do not attempt to find/load a config (memory regions provided using -m)"
             echo "  --wrapper-info        print wrapper info and options"
             echo "  --wrapper-plugins     print all found plugins"
-            echo "  --wrapper-configs     print all found config files"
             shift
             exit 1
             ;;
@@ -106,13 +106,6 @@ while (( "$#" )); do
             # Dump all plugins
             echo "Plugins:"
             showfiles "*.so" "${PLUGIN_DIR[@]}"
-            shift
-            exit 1
-            ;;
-        --wrapper-configs)
-            # Dump all configuration files
-            echo "Configuration files:"
-            showfiles "*.json" "${CONFIG_DIR[@]}"
             shift
             exit 1
             ;;
@@ -136,11 +129,12 @@ while (( "$#" )); do
             done
             echo
 
-            # Default config name:
-            config="$(findfile "$DEFAULT_CONFIG" "${CONFIG_DIR[@]}")"
-            echo "Default configuration file: $config"
-            shift
             exit 1
+            ;;
+        *.elf)
+            elf_file="$(realpath $1)"
+            pass_args+="$elf_file "
+            shift
             ;;
         *)
             #echo "found passtrough"
@@ -150,14 +144,36 @@ while (( "$#" )); do
     esac
 done
 
-# Check if a config is provided, otherwise
-if [ "$config_provided" = false ]; then
-    # Provide the default config (config is required)
-    config="$(findfile "$DEFAULT_CONFIG" "${CONFIG_DIR[@]}")"
-    pass_args="-c $config  $pass_args"
+if [ -z "$elf_file" ]; then
+      echo "No ELF file provided"
+      exit 1
 fi
 
-cmd="$ICEmu $pass_args"
+# Check if a config is provided, otherwise use the default architecture config
+if [ -z "$config_file" ]; then
+    # Use the default config for the architecture
+    if readelf -h $elf_file | grep "Machine" | grep -q "ARM"; then
+      echo "ARMv7 architecture detected"
+      config_file="$DEFAULT_ARMV7_CFG"
+    elif readelf -h $elf_file | grep "Machine" | grep -q "RISC-V"; then
+      echo "RISCV64 architecture detected"
+      config_file="$DEFAULT_RISCV64_CFG"
+    else 
+      echo "Architecture not detected from ELF and not provided using '-c'"
+      exit 1
+    fi
+
+    echo "Config file: $config_file"
+fi
+
+# Source the config file (populates ARGS)
+ARGS=""
+source "$config_file"
+
+# Build the command
+cmd="$ICEmu $ARGS $pass_args"
+
+# Run the emulator
 echo "$cmd"
 echo
 $cmd

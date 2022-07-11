@@ -1,127 +1,103 @@
-#ifndef ICEMU_CONFIG_H_
-#define ICEMU_CONFIG_H_
+#pragma once
 
-#include <json/value.h>
+#include <assert.h>
+
 #include <exception>
 #include <fstream>
 #include <iostream>
+#include <vector>
+#include <sstream>
 
-#include "json/json.h"
+#include "icemu/ArgParse.h"
+#include "icemu/emu/types.h"
 
 namespace icemu {
 
-namespace Setting = Json;
-
 class Config {
+ public:
+  struct MemoryRegion {
+    std::string name;
+    address_t origin;
+    address_t length;
+  };
+
  private:
-  std::string cfg_file_;
-  bool good_ = false;
+  std::string elf_file;
+  std::vector<MemoryRegion> memory_regions;
 
-  bool parse(Json::Value &s, const std::string cfg_file) {
-    std::ifstream ifs(cfg_file);
-
-    if (ifs.fail()) {
-      std::cerr << "Could not open file: " << cfg_file << std::endl;
-      return false;
-    }
-
-    Json::CharReaderBuilder builder;
-    Json::CharReader *reader = builder.newCharReader();
-    std::string errs;
-
-    if (!parseFromStream(builder, ifs, &s, &errs)) {
-      std::cerr << errs << std::endl;
-      return false;
-    }
-    delete reader;
-
-    return true;
-  }
-
-#if 0 // TODO: Fix issue #2
-  void update(Json::Value &a, Json::Value &b) {
-    if (!a.isObject() || !b.isObject()) {
-      return;
-    }
-    for (const auto &key : b.getMemberNames()) {
-      if (a[key].type() == Json::objectValue &&
-          b[key].type() == Json::objectValue) {
-        update(a[key], b[key]);
-
-      } else if (a[key].type() == Json::arrayValue &&
-                 b[key].type() == Json::arrayValue) {
-        for (const auto &entry : b[key]) {
-          bool updated_entry = false;
-          try {
-            std::string entry_name = entry["name"].asString();
-            // Find the entry name in the existing configuration
-            for (auto &old_entry : a[key]) {
-              if (entry_name == old_entry["name"].asString()) {
-                old_entry = entry;
-                updated_entry = true;
-              }
-            }
-          } catch (...) {
-          }
-          if (!updated_entry) {
-            a[key].append(entry);
-          }
-        }
+  address_t length_string_to_numb(std::string len_str) {
+    size_t suffix_idx;
+    address_t len;
+  
+    len = stol(len_str, &suffix_idx, 10);  // TODO: is this always base 10?
+  
+    // Parse the suffix, i.e. K or M
+    std::string suffix = len_str.substr(suffix_idx);
+    if (suffix.length()) {
+      // There is a suffix
+      if (suffix.compare("K") == 0) {
+        len *= 1024;
+      } else if (suffix.compare("M") == 0) {
+        len *= (1000 * 1024);
       } else {
-        a[key] = b[key];
+        std::cerr << "Unknown suffix in length: " << len_str << std::endl;
+        return 0;
       }
     }
+    return len;
   }
-#endif
 
  public:
-  Json::Value settings;
+    //memseg.name = mr.name;
+    //memseg.origin = stol(mr.origin, nullptr, 16);
+    //memseg.length = length_string_to_numb(mr.length);
+  Config(ArgParse &args) {
+    // Store the elf file
+    elf_file = args.vm["elf-file"].as<std::string>();
 
-  Config(const std::string cfg_file) {
-    cfg_file_ = cfg_file;
-    good_ = parse(settings, cfg_file);
+    // Store the memory regions
+    std::vector<std::string> region_args =
+        args.vm["memory-region"].as<std::vector<std::string> >();
+    for (const auto &region : region_args) {
+      // Tokenize the string and parse it
+      // Format: NAME:ORIGIN:LENGTH
+      std::stringstream ss(region);
+      std::string r_name;
+      std::string r_origin;
+      std::string r_length;
+
+      auto has_error = [&]() -> bool {
+        if (!ss.good()) {
+          std::cerr << "Error parsing memory region argument: " << region << std::endl;
+          return true;
+        }
+        return false;
+      };
+
+      // Get the substrings
+      if (has_error()) continue;
+      getline(ss, r_name, ':');
+
+      if (has_error()) continue;
+      getline(ss, r_origin, ':');
+
+      if (has_error()) continue;
+      getline(ss, r_length, ':');
+
+      // Parse the substrings
+      address_t origin = stol(r_origin, nullptr, 16);
+      address_t length = length_string_to_numb(r_length);
+
+      // Add the region
+      memory_regions.push_back(MemoryRegion{.name=r_name, .origin=origin, .length=length});
+    }
   }
-  Config() = default;
 
   ~Config() {}
 
-  bool good() { return good_; }
-  bool bad() { return !good_; }
+  std::vector<MemoryRegion> &getMemoryRegions() { return memory_regions; }
 
-  bool add(const std::string cfg_file) {
-    good_ = false;
-    if (!settings.isObject()) {
-      // First one
-      cfg_file_ = cfg_file; // Set the "main" cfg file
-      good_ = parse(settings, cfg_file);
-    } else {
-      // Merge the new config into the old one
-      std::cout << "MERGING CONFIGURATION FILES SUCKS AND IS INCOMPLETE, SEE ISSUE #2" << std::endl;
-      std::cout << "PLEASE DON'T USE THIS, MERGE THE CONFIGURATION MANUALLY" << std::endl;
-      good_ = false;
-      #if 0
-      Json::Value update_settings;
-      good_ = parse(update_settings, cfg_file);
-      if (good_) {
-        try {
-          update(settings, update_settings);
-        } catch (std::exception &e) {
-          std::cerr << "Failed merging configuration files (merging in: " << cfg_file << ")" << std::endl;
-          std::cerr << "Error: " << e.what() << std::endl;
-          good_ = false;
-        }
-      }
-      #endif
-    }
-    return good_;
-  }
-
-  void print() {
-    std::cout << "Config settings:" << std::endl;
-    std::cout << settings << std::endl;
-  }
+  void print() { std::cout << "Config settings:" << std::endl; }
 };
 
 }  // namespace icemu
-
-#endif /* ICEMU_CONFIG_H_ */

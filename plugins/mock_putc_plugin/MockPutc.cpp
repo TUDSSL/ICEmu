@@ -15,7 +15,8 @@
 #include "icemu/hooks/HookFunction.h"
 #include "icemu/hooks/HookManager.h"
 #include "icemu/hooks/RegisterHook.h"
-#include "icemu/emu/Function.h"
+
+#include "PluginArgumentParsing.h"
 
 
 using namespace std;
@@ -38,25 +39,13 @@ class MockPutc : public HookFunction {
   // Always execute
   MockPutc(Emulator &emu, string fname) : HookFunction(emu, fname) {
     // Get where to store the log file (if any)
-    string argument_name = "putc-logfile=";
-    for (const auto &a : getEmulator().getPluginArguments().getArgs()) {
-      auto pos = a.find(argument_name);
-      if (pos != string::npos) {
-        auto arg_value = a.substr(pos+argument_name.length());
-
-        output_file = arg_value;
-        if (output_file == "%") {
-          output_file = getEmulator().getElfDir() + "/" + getEmulator().getElfName() + ".stdout";
-        }
-
-        // Open the output file
-        output_file_stream.open(output_file, ios::out);
-
-        cout << printLeader() << " writing output to: " << output_file << endl;
-        break;
-      }
+    auto name_arg = PluginArgumentParsing::GetArguments(emu, "putc-logfile=");
+    if (name_arg.args.size()) {
+      output_file = name_arg.args[0];
+      // Open the output file
+      output_file_stream.open(output_file, ios::out);
+      cout << printLeader() << " writing output to: " << output_file << endl;
     }
-
   }
 
   ~MockPutc() {
@@ -67,19 +56,19 @@ class MockPutc : public HookFunction {
   // Hook run
   void run(hook_arg_t *arg) {
     (void)arg;
-    Registers &reg = getRegisters();
 
-    Function::Argument<char> farg_char;
-    Function::Argument<uint32_t> farg_file; // Unused
-    Function::Arguments::parse(reg, farg_char, farg_file);
+    auto &arch = getEmulator().getArchitecture();
+    char arg_char = arch.functionGetArgument(0);
+    //uint32_t arg_file = arch.functionGetArgument(1); // Unused
 
-    cout << color_start << farg_char.arg << color_end;
+    cout << color_start << arg_char << color_end;
 
     if (output_file_stream.is_open()) {
-      output_file_stream << farg_char.arg;
+      output_file_stream << arg_char;
     }
 
-    Function::skip(reg, farg_char.arg);
+    arch.functionSetReturn((uint32_t)arg_char); // Return the character that was printed
+    arch.functionSkip();
   }
 };
 

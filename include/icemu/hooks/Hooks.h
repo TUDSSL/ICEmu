@@ -22,7 +22,7 @@ class Hooks {
   }
 
   template <typename T>
-  void run(armaddr_t address, T *arg) {
+  void run(address_t address, T *arg) {
     // Run the hooks
     hooklist_t::iterator it = hooks.begin();
     while (it != hooks.end()) {

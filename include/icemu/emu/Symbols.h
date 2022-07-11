@@ -13,21 +13,21 @@ namespace icemu {
 
 typedef struct symbol {
   std::string name;
-  armaddr_t address;
-  armaddr_t size;
+  address_t address;
+  address_t size;
 
   size_t section;
   unsigned char bind;
   unsigned char type;
   unsigned char other;
 
-  armaddr_t getFuncAddr() const { return address & ~0x1; }
+  //address_t getFuncAddr() const { return address & ~0x1; }
 } symbol_t;
 
 class Symbols {
  private:
   std::map<std::string, symbol_t *> map_name_symbol;
-  std::map<armaddr_t, symbol_t *> map_addr_symbol;
+  std::map<address_t, symbol_t *> map_addr_symbol;
 
   void build_maps() {
     // Build the maps if they are not already complete
@@ -43,7 +43,7 @@ class Symbols {
  public:
   std::list<symbol_t> symbols;
 
-  const symbol_t *get(armaddr_t addr) {
+  const symbol_t *get(address_t addr) {
     symbol_t *symb;
 
     build_maps();

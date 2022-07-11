@@ -19,7 +19,7 @@ class HookMemory : public Hook {
 
   typedef struct hook_memory_arg : hook_arg {
     enum memory_type mem_type;
-    armaddr_t value;
+    address_t value;
   } hook_arg_t;
 
   virtual void run(hook_arg_t *arg) {
