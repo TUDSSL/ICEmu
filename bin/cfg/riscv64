@@ -1,0 +1,2 @@
+# RISCV64 specific arguments for ICEmu
+ARGS=""
