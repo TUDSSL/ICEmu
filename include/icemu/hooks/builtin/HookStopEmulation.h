@@ -13,7 +13,6 @@ extern volatile std::atomic<bool> gStopEmulation;
 
 class HookStopEmulation : public HookCode {
  private:
-  const uint16_t breakpoint_instr = 0xbe00;
 
  public:
   HookStopEmulation(Emulator &emu) : HookCode(emu, "stop_emulation") {
@@ -28,17 +27,6 @@ class HookStopEmulation : public HookCode {
       getEmulator().stop("Stop signal received");
       setStatus(Hook::STATUS_SKIP_REST);
       return;
-    }
-    uint16_t instr;
-    if (getEmulator().readMemory(arg->address, (char *)&instr, sizeof(instr))) {
-      if (instr == breakpoint_instr) {
-        getEmulator().stop("Breakpoint instruction");
-        setStatus(Hook::STATUS_SKIP_REST);
-      }
-    } else {
-      std::cerr << "Could not read instruction memory" << std::endl;
-      getEmulator().stop("Could not read instruction");
-      setStatus(Hook::STATUS_SKIP_REST);
     }
   }
 };
