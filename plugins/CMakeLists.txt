@@ -1,3 +1,24 @@
+cmake_minimum_required(VERSION 3.15)
+
+project(Plugins LANGUAGES CXX)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+#Include Unicorn
+include_directories(${CMAKE_SOURCE_DIR}/../lib/unicorn/include)
+link_directories(${CMAKE_SOURCE_DIR}/../lib/unicorn/build)
+
+#Include Capstone
+include_directories(${CMAKE_SOURCE_DIR}/../lib/capstone/include)
+link_directories(${CMAKE_SOURCE_DIR}/../lib/capstone)
+
+#Include ElfIO
+include_directories(${CMAKE_SOURCE_DIR}/../lib/ELFIO)
+
+#Include ICEmu
+include_directories(${CMAKE_SOURCE_DIR}/../include/)
+link_directories(${CMAKE_SOURCE_DIR}/../build/)
+
 set(PLUGIN_INCLUDE_DIRECTORIES
     ${PROJECT_SOURCE_DIR}/include
     )
@@ -17,7 +38,7 @@ set(PLUGIN_LINK_OPTIONS
     -fPIC
     )
 
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/plugins)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 add_subdirectory(display_instructions_plugin)
 #add_subdirectory(step_instructions_plugin)
@@ -30,7 +51,7 @@ add_subdirectory(display_instructions_plugin)
 #add_subdirectory(idempotency_statistics_plugin)
 #add_subdirectory(cycle_count_plugin)
 #add_subdirectory(final_value_plugin)
-add_subdirectory(track_variable_plugin)
+#add_subdirectory(track_variable_plugin)
 #add_subdirectory(checkpoint_verification_plugin)
 #add_subdirectory(callsite_count_plugin)
 #add_subdirectory(checkpoint_marker_plugin)
