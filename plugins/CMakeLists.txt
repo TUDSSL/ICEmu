@@ -19,6 +19,9 @@ include_directories(${CMAKE_SOURCE_DIR}/../lib/ELFIO)
 include_directories(${CMAKE_SOURCE_DIR}/../include/)
 link_directories(${CMAKE_SOURCE_DIR}/../build/)
 
+# Include Common dir
+include_directories(common/)
+
 set(PLUGIN_INCLUDE_DIRECTORIES
     ${PROJECT_SOURCE_DIR}/include
     )

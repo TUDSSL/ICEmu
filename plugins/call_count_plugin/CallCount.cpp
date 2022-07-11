@@ -11,6 +11,8 @@
 #include "icemu/hooks/HookManager.h"
 #include "icemu/hooks/RegisterHook.h"
 
+#include "PluginArgumentParsing.h"
+
 using namespace std;
 using namespace icemu;
 
@@ -30,13 +32,10 @@ class CallCount : public HookCode {
   }
 
   void processCallCountTrackArguments() {
-    string argument_name = "call-count-track=";
-    for (const auto &a : getEmulator().getPluginArguments().getArgs()) {
-      auto pos = a.find(argument_name);
-      if (pos != string::npos) {
-        auto arg_value = a.substr(pos+argument_name.length());
-        function_names.push_back(arg_value);
-      }
+
+    auto name_arg = PluginArgumentParsing::GetArguments(getEmulator(), "call-count-track=");
+    for (auto &arg : name_arg.args) {
+      function_names.push_back(arg);
     }
   }
 

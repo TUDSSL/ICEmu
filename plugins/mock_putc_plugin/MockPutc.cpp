@@ -16,6 +16,8 @@
 #include "icemu/hooks/HookManager.h"
 #include "icemu/hooks/RegisterHook.h"
 
+#include "PluginArgumentParsing.h"
+
 
 using namespace std;
 using namespace icemu;
@@ -37,25 +39,13 @@ class MockPutc : public HookFunction {
   // Always execute
   MockPutc(Emulator &emu, string fname) : HookFunction(emu, fname) {
     // Get where to store the log file (if any)
-    string argument_name = "putc-logfile=";
-    for (const auto &a : getEmulator().getPluginArguments().getArgs()) {
-      auto pos = a.find(argument_name);
-      if (pos != string::npos) {
-        auto arg_value = a.substr(pos+argument_name.length());
-
-        output_file = arg_value;
-        if (output_file == "%") {
-          output_file = getEmulator().getElfDir() + "/" + getEmulator().getElfName() + ".stdout";
-        }
-
-        // Open the output file
-        output_file_stream.open(output_file, ios::out);
-
-        cout << printLeader() << " writing output to: " << output_file << endl;
-        break;
-      }
+    auto name_arg = PluginArgumentParsing::GetArguments(emu, "putc-logfile=");
+    if (name_arg.args.size()) {
+      output_file = name_arg.args[0];
+      // Open the output file
+      output_file_stream.open(output_file, ios::out);
+      cout << printLeader() << " writing output to: " << output_file << endl;
     }
-
   }
 
   ~MockPutc() {
