@@ -26,7 +26,6 @@ bool ArgParse::parse(int argc, char **argv) {
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help,h", "produce help message")
-        ("config-file,c", po::value< vector<string> >()->required(), "json config file")
         ("elf-file,e", po::value<string>(), "elf input file")
         ("memory-region,m", po::value< vector<string> >(), "memory region: NAME:HEX_ORIGIN:SIZE e.g., RWMEM:0x10000000:384K (can be passed multiple times)")
         ("plugin,p", po::value< vector<string> >(), "load plugin (can be passed multiple times)")

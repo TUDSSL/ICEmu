@@ -74,8 +74,6 @@ bool Memory::collect() {
   unsigned char e_machine = elf_reader.get_machine();
   unsigned char e_class = elf_reader.get_class();
 
-  cerr << "Class: " << (uint32_t)e_class;
-
   // ARMv7 32-bit
   if (e_machine == 0x28 && e_class == 1) {
     elf_arch = Arch::EMU_ARCH_ARMV7;
