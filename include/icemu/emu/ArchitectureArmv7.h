@@ -101,5 +101,10 @@ class ArchitectureArmv7 {
     }
     return value;
   }
-};
+
+  armv7_addr_t getFunctionAddress(armv7_addr_t address) {
+    return address & ~0x1;
+  }
+
+  };
 }

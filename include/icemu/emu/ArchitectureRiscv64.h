@@ -127,5 +127,9 @@ class ArchitectureRiscv64 {
     return value;
   }
 
+  riscv_addr_t getFunctionAddress(riscv_addr_t address) {
+    return address;
+  }
+
 };
 }

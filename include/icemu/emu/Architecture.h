@@ -169,6 +169,18 @@ class Architecture {
     assert(false && "Unknown architecture");
   }
 
+  address_t getFunctionAddress(address_t address) {
+    switch (arch_) {
+      case EMU_ARCH_ARMV7:
+        return arch_armv7.getFunctionAddress(address);
+        break;
+      case EMU_ARCH_RISCV64:
+        return arch_riscv64.getFunctionAddress(address);
+        break;
+    }
+    assert(false && "Unknown architecture");
+  }
+
 #if 0 // is this needed?
   void reset() {
     switch (arch_) {

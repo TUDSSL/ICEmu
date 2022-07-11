@@ -13,18 +13,21 @@ namespace icemu {
 class HookFunction : public HookCode {
  public:
   std::string function_name;
+  address_t function_address;
 
   HookFunction(Emulator &emu, std::string fname)
       : HookCode(emu, "hook_function_" + fname) {
     function_name = fname;
     try {
-      auto func_addr = getEmulator()
+      function_address = getEmulator()
                            .getMemory()
                            .getSymbols()
                            .get(function_name)
-                           ->getFuncAddr();
+                           ->address;
+      function_address = emu.getArchitecture().getFunctionAddress(function_address);
+
       type = Hook::TYPE_RANGE;
-      low = high = func_addr;
+      low = high = function_address;
     } catch (...) {
       std::cerr << "Failed to register function hook for: " << function_name
                 << " (UNKNOWN ADDRESS)" << std::endl;
@@ -34,7 +37,8 @@ class HookFunction : public HookCode {
   }
 
   // Helper
-  inline Registers &getRegisters() { return getEmulator().getRegisters(); }
+  inline Architecture &getArchitecture() { return getEmulator().getArchitecture(); }
+  inline address_t &getFunctionAddress() { return function_address; }
 
   virtual void run(hook_arg_t *arg) = 0;
 };
