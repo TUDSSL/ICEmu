@@ -42,6 +42,9 @@ class MockPutc : public HookFunction {
     auto name_arg = PluginArgumentParsing::GetArguments(emu, "putc-logfile=");
     if (name_arg.args.size()) {
       output_file = name_arg.args[0];
+      if (name_arg.has_magic) {
+        output_file += ".putc.log";
+      }
       // Open the output file
       output_file_stream.open(output_file, ios::out);
       cout << printLeader() << " writing output to: " << output_file << endl;

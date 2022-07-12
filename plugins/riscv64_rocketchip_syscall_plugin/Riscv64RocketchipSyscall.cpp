@@ -22,7 +22,7 @@
       while (fromhost == 0)
         ;
       fromhost = 0;
-    
+  
       __sync_synchronize();
       return magic_mem[0];
     }
@@ -40,10 +40,12 @@
 #include "icemu/hooks/HookManager.h"
 #include "icemu/hooks/RegisterHook.h"
 
+#include "PluginArgumentParsing.h"
+
 using namespace std;
 using namespace icemu;
 
-class Riscv64RocketchipTohost : public HookMemory {
+class Riscv64RocketchipSyscall : public HookMemory {
  private:
   const symbol_t *to_host;
   const symbol_t *from_host;
@@ -54,15 +56,31 @@ class Riscv64RocketchipTohost : public HookMemory {
   const uint64_t SYS_write = 64;
 
   string printLeader() {
-    return "[syscall_tohost] ";
+    return "[syscall] ";
   }
 
   string color_start = "\033[1m";
   string color_end = "\033[0m";
 
+  string output_file;
+  ofstream output_file_stream;
+
  public:
   bool good = true;
-  Riscv64RocketchipTohost(Emulator &emu) : HookMemory(emu, "syscall_tohost") {
+  Riscv64RocketchipSyscall(Emulator &emu) : HookMemory(emu, "syscall") {
+    // Get where to store the log file (if any)
+    auto name_arg = PluginArgumentParsing::GetArguments(emu, "syscall-print-logfile=");
+    if (name_arg.args.size()) {
+      output_file = name_arg.args[0];
+      if (name_arg.has_magic) {
+        output_file += ".syscall.log";
+      }
+      // Open the output file
+      output_file_stream.open(output_file, ios::out);
+      cout << printLeader() << " writing output to: " << output_file << endl;
+    }
+
+    // Setup the hook
     Symbols &sym = getEmulator().getMemory().getSymbols();
 
     to_host = sym.get("tohost");
@@ -83,6 +101,11 @@ class Riscv64RocketchipTohost : public HookMemory {
     mem_to_host = getEmulator().getMemory().at(to_host->address);
     mem_from_host = getEmulator().getMemory().at(from_host->address);
 
+  }
+
+  ~Riscv64RocketchipSyscall() {
+    cout << color_end;
+    if (output_file_stream.is_open()) output_file_stream.close();
   }
 
   // Hook run (at every memory access)
@@ -114,7 +137,11 @@ class Riscv64RocketchipTohost : public HookMemory {
         char *buffer_host_addr = getEmulator().getMemory().at(buffer_addr);
         cout << color_start;
         for (size_t i=0; i<buffer_len; i++) {
-          cout << buffer_host_addr[i];
+          char c = buffer_host_addr[i];
+          cout << c;
+          if (output_file_stream.is_open()) {
+            output_file_stream << c;
+          }
         }
         cout << color_end;
       }
@@ -127,7 +154,7 @@ class Riscv64RocketchipTohost : public HookMemory {
 
 // Function that registers the hook
 static void registerMyCodeHook(Emulator &emu, HookManager &HM) {
-  auto p = new Riscv64RocketchipTohost(emu);
+  auto p = new Riscv64RocketchipSyscall(emu);
   if (p->good) {
     HM.add(p);
   } else {
