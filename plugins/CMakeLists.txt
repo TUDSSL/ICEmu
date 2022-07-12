@@ -53,6 +53,7 @@ add_subdirectory(armv7_stop_emulation_plugin)
 
 # RISCV64 specific plugins
 add_subdirectory(riscv64_stop_emulation_plugin)
+add_subdirectory(riscv64_rocketchip_syscall_plugin)
 
 # Legacy plugins, not tested with the currecnt version of ICEmu
 #add_subdirectory(callsite_count_plugin)
