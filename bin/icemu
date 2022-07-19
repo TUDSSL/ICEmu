@@ -183,4 +183,7 @@ cmd="$ICEmu $ARGS $pass_args"
 # Run the emulator
 echo "$cmd"
 echo
+
+# Disable memory leak warnings (Unicorn has one, out of our control)
+export ASAN_OPTIONS=detect_leaks=0
 $cmd
