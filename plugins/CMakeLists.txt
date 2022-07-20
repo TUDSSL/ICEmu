@@ -48,6 +48,7 @@ add_subdirectory(call_count_plugin)
 add_subdirectory(mock_putc_plugin)
 add_subdirectory(mock_clockfunc_plugin)
 add_subdirectory(display_memory_plugin)
+add_subdirectory(shadow_memory_plugin)
 
 # ARMv7 specific plugins
 add_subdirectory(armv7_stop_emulation_plugin)
