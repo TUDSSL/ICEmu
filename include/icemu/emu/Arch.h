@@ -8,6 +8,7 @@
  */
 enum Arch {
     EMU_ARCH_ARMV7,
+    EMU_ARCH_RISCV32,
     EMU_ARCH_RISCV64
 };
 

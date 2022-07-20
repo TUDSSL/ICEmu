@@ -1,8 +1,8 @@
 
-set(PLUGIN_NAME "riscv64_stop_emulation_plugin.so")
+set(PLUGIN_NAME "riscv_stop_emulation_plugin.so")
 
 add_executable(${PLUGIN_NAME}
-    "Riscv64StopEmulation.cpp"
+    "RiscvStopEmulation.cpp"
     )
 
 target_include_directories(${PLUGIN_NAME}

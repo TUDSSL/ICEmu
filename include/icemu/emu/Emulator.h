@@ -69,6 +69,16 @@ class Emulator {
         }
         break;
 
+      case EMU_ARCH_RISCV32:
+        err = uc_open(UC_ARCH_RISCV, (uc_mode)(UC_MODE_RISCV32), &uc);
+        if (cs_open(CS_ARCH_RISCV, (cs_mode)(CS_MODE_RISCV32 | CS_MODE_RISCVC), &cs) !=
+            CS_ERR_OK) {
+          std::cerr << "Failed to initialize capstone engine" << std::endl;
+          good_ = false;
+          assert(false);
+        }
+        break;
+
       case EMU_ARCH_RISCV64:
         err = uc_open(UC_ARCH_RISCV, (uc_mode)(UC_MODE_RISCV64), &uc);
         if (cs_open(CS_ARCH_RISCV, (cs_mode)(CS_MODE_RISCV64 | CS_MODE_RISCVC), &cs) !=

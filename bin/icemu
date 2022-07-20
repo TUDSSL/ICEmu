@@ -6,6 +6,7 @@ ICEmu="$DIR/../build/ICEmu"
 
 DEFAULT_ARMV7_CFG="$DIR/cfg/armv7"
 DEFAULT_RISCV64_CFG="$DIR/cfg/riscv64"
+DEFAULT_RISCV32_CFG="$DIR/cfg/riscv32"
 
 ## Plugin directories
 PLUGIN_DIR+=(".")
@@ -154,9 +155,20 @@ if [ -z "$config_file" ]; then
     if readelf -h $elf_file | grep "Machine" | grep -q "ARM"; then
       echo "ARMv7 architecture detected"
       config_file="$DEFAULT_ARMV7_CFG"
+
     elif readelf -h $elf_file | grep "Machine" | grep -q "RISC-V"; then
-      echo "RISCV64 architecture detected"
-      config_file="$DEFAULT_RISCV64_CFG"
+
+      if readelf -h $elf_file | grep "Class" | grep -q "ELF32"; then
+        echo "RISCV32 architecture detected"
+        config_file="$DEFAULT_RISCV32_CFG"
+      elif readelf -h $elf_file | grep "Class" | grep -q "ELF64"; then
+        echo "RISCV64 architecture detected"
+        config_file="$DEFAULT_RISCV64_CFG"
+      else
+        echo "Architecture not detected from ELF and not provided using '-c'"
+        exit 1
+      fi
+
     else 
       echo "Architecture not detected from ELF and not provided using '-c'"
       exit 1

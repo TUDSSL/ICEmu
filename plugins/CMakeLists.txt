@@ -47,13 +47,20 @@ add_subdirectory(display_instructions_plugin)
 add_subdirectory(call_count_plugin)
 add_subdirectory(mock_putc_plugin)
 add_subdirectory(mock_clockfunc_plugin)
+add_subdirectory(display_memory_plugin)
 
 # ARMv7 specific plugins
 add_subdirectory(armv7_stop_emulation_plugin)
 
+# RISCV generic plugins
+add_subdirectory(riscv_stop_emulation_plugin)
+
 # RISCV64 specific plugins
-add_subdirectory(riscv64_stop_emulation_plugin)
 add_subdirectory(riscv64_rocketchip_syscall_plugin)
+
+# RISCV32 specific plugins
+add_subdirectory(riscv32_rocketchip_syscall_plugin)
+
 
 # Legacy plugins, not tested with the currecnt version of ICEmu
 #add_subdirectory(callsite_count_plugin)

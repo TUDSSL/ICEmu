@@ -8,6 +8,7 @@
 
 #include "Arch.h"
 #include "ArchitectureArmv7.h"
+#include "ArchitectureRiscv32.h"
 #include "ArchitectureRiscv64.h"
 
 namespace icemu {
@@ -25,6 +26,7 @@ class Architecture {
 
   // Availible architectures
   ArchitectureArmv7 arch_armv7;
+  ArchitectureRiscv32 arch_riscv32;
   ArchitectureRiscv64 arch_riscv64;
 
   // Map
@@ -37,6 +39,7 @@ class Architecture {
 
     // Init the availible architectures
     arch_armv7.init(uc);
+    arch_riscv32.init(uc);
     arch_riscv64.init(uc);
   }
 
@@ -65,6 +68,20 @@ class Architecture {
     assert(false && "Unknown register map between generic register and ARMv7 register");
   }
 
+  ArchitectureRiscv32::Register genericRegToRiscv32Reg(Register reg) {
+    switch (reg) {
+      case REG_RETURN:
+        return ArchitectureRiscv32::REG_RETURN;
+      case REG_RETURN_ADDRESS:
+        return ArchitectureRiscv32::REG_RA;
+      case REG_PC:
+        return ArchitectureRiscv32::REG_PC;
+      case REG_SP:
+        return ArchitectureRiscv32::REG_SP;
+    }
+    assert(false && "Unknown register map between generic register and RISCV32 register");
+  }
+
   ArchitectureRiscv64::Register genericRegToRiscv64Reg(Register reg) {
     switch (reg) {
       case REG_RETURN:
@@ -84,6 +101,9 @@ class Architecture {
       case EMU_ARCH_ARMV7:
         return genericRegToArmv7Reg(reg);
         break;
+      case EMU_ARCH_RISCV32:
+        return genericRegToRiscv32Reg(reg);
+        break;
       case EMU_ARCH_RISCV64:
         return genericRegToRiscv64Reg(reg);
         break;
@@ -96,6 +116,9 @@ class Architecture {
     switch (arch_) {
       case EMU_ARCH_ARMV7:
         return arch_armv7.getAddressSize();
+        break;
+      case EMU_ARCH_RISCV32:
+        return arch_riscv32.getAddressSize();
         break;
       case EMU_ARCH_RISCV64:
         return arch_riscv64.getAddressSize();
@@ -120,6 +143,9 @@ class Architecture {
       case EMU_ARCH_ARMV7:
         arch_armv7.functionSkip();
         break;
+      case EMU_ARCH_RISCV32:
+        arch_riscv32.functionSkip();
+        break;
       case EMU_ARCH_RISCV64:
         arch_riscv64.functionSkip();
         break;
@@ -131,6 +157,9 @@ class Architecture {
       case EMU_ARCH_ARMV7:
         arch_armv7.functionSetReturn(value);
         break;
+      case EMU_ARCH_RISCV32:
+        arch_riscv32.functionSetReturn(value);
+        break;
       case EMU_ARCH_RISCV64:
         arch_riscv64.functionSetReturn(value);
         break;
@@ -141,6 +170,9 @@ class Architecture {
     switch (arch_) {
       case EMU_ARCH_ARMV7:
         arch_armv7.functionSetReturn(value);
+        break;
+      case EMU_ARCH_RISCV32:
+        arch_riscv32.functionSetReturn(value);
         break;
       case EMU_ARCH_RISCV64:
         arch_riscv64.functionSetReturn(value);
@@ -162,6 +194,9 @@ class Architecture {
       case EMU_ARCH_ARMV7:
         return arch_armv7.functionGetArgument(n);
         break;
+      case EMU_ARCH_RISCV32:
+        return arch_riscv32.functionGetArgument(n);
+        break;
       case EMU_ARCH_RISCV64:
         return arch_riscv64.functionGetArgument(n);
         break;
@@ -173,6 +208,9 @@ class Architecture {
     switch (arch_) {
       case EMU_ARCH_ARMV7:
         return arch_armv7.getFunctionAddress(address);
+        break;
+      case EMU_ARCH_RISCV32:
+        return arch_riscv32.getFunctionAddress(address);
         break;
       case EMU_ARCH_RISCV64:
         return arch_riscv64.getFunctionAddress(address);

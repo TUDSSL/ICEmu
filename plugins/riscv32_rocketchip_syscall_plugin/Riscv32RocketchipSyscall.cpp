@@ -1,34 +1,31 @@
 /**
  *  ICEmu loadable plugin (library)
  *
- * Should be compiled as a shared library, i.e. using `-shared -fPIC`
+ * Copy of the 64-bit version but with 32-bit writes
  */
 #include <iostream>
+#include <string.h>
 
 #include "icemu/emu/Emulator.h"
 #include "icemu/hooks/HookFunction.h"
 #include "icemu/hooks/HookManager.h"
 #include "icemu/hooks/RegisterHook.h"
 
+#include "PluginArgumentParsing.h"
+
+#include "RiscvXXRocketchipSyscall.h"
+
 using namespace std;
 using namespace icemu;
 
-class Riscv64StopEmulation : public HookFunction {
- public:
-  Riscv64StopEmulation(Emulator &emu) : HookFunction(emu, "tohost_exit") {
-  }
-
-  // Hook run
-  void run(hook_arg_t *arg) {
-    (void)arg;
-    getEmulator().stop("reached tohost_exit");
-    setStatus(Hook::STATUS_SKIP_REST);
-  }
-};
-
 // Function that registers the hook
 static void registerMyCodeHook(Emulator &emu, HookManager &HM) {
-  HM.add(new Riscv64StopEmulation(emu));
+  auto p = new RiscvXXRocketchipSyscall<uint32_t>(emu); // 32-bit version
+  if (p->good) {
+    HM.add(p);
+  } else {
+    delete p;
+  }
 }
 
 // Class that is used by ICEmu to finf the register function

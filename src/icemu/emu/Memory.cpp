@@ -78,6 +78,10 @@ bool Memory::collect() {
   if (e_machine == 0x28 && e_class == 1) {
     elf_arch = Arch::EMU_ARCH_ARMV7;
   } 
+  // RISCV 32-bit
+  else if (e_machine == 0xF3 && e_class == 1) {
+    elf_arch = Arch::EMU_ARCH_RISCV32;
+  }
   // RISCV 64-bit
   else if (e_machine == 0xF3 && e_class == 2) {
     elf_arch = Arch::EMU_ARCH_RISCV64;
@@ -171,8 +175,8 @@ bool Memory::collect() {
   return true;
 }
 
-static inline size_t align_1024(size_t length) {
-  const size_t align = 1024;
+static inline size_t align_4096(size_t length) {
+  const size_t align = (1024*4);
   size_t res = ((length + align - 1) / align) * align;
   return res;
 }
@@ -185,8 +189,8 @@ bool Memory::allocate() {
         return false;
       }
       // For the emulator (unicorn) we need allocated memory chunks
-      // to be a multiple of 1024
-      m.allocated_length = align_1024((size_t)m.length);
+      // to be a multiple of 4096
+      m.allocated_length = align_4096((size_t)m.length);
       m.data = new uint8_t[m.allocated_length];
       memset(m.data, 0, m.allocated_length);
     }
