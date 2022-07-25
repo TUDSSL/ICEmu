@@ -46,6 +46,11 @@ class Architecture {
   // Architecture
   inline Arch getArch() { return arch_; }
 
+  // Get a specific architecture (use must guarantee it uses that arch)
+  inline ArchitectureArmv7 &getArmv7Architecture() { return arch_armv7; }
+  inline ArchitectureRiscv32 &getRiscv32Architecture() { return arch_riscv32; }
+  inline ArchitectureRiscv64 &getRiscv64Architecture() { return arch_riscv64; }
+
   // Generic registers
   enum Register {
     REG_RETURN,
@@ -66,6 +71,7 @@ class Architecture {
         return ArchitectureArmv7::REG_SP;
     }
     assert(false && "Unknown register map between generic register and ARMv7 register");
+    return ArchitectureArmv7::REG_PC; // Unreachable
   }
 
   ArchitectureRiscv32::Register genericRegToRiscv32Reg(Register reg) {
@@ -80,6 +86,7 @@ class Architecture {
         return ArchitectureRiscv32::REG_SP;
     }
     assert(false && "Unknown register map between generic register and RISCV32 register");
+    return ArchitectureRiscv32::REG_PC; // Unreachable
   }
 
   ArchitectureRiscv64::Register genericRegToRiscv64Reg(Register reg) {
@@ -94,6 +101,7 @@ class Architecture {
         return ArchitectureRiscv64::REG_SP;
     }
     assert(false && "Unknown register map between generic register and RISCV64 register");
+    return ArchitectureRiscv64::REG_PC; // Unreachable
   }
   
   int genericToArchReg(Register reg) {
@@ -109,6 +117,7 @@ class Architecture {
         break;
     }
     assert(false && "Unknown architecture");
+    return -1; // Unreachable
   }
 
   // Register size
@@ -125,6 +134,7 @@ class Architecture {
         break;
     }
     assert(false && "Unknown architecture");
+    return -1; // Never get here
   }
 
   address_t registerGet(Register reg) {
