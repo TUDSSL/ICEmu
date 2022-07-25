@@ -61,6 +61,7 @@ add_subdirectory(riscv64_rocketchip_syscall_plugin)
 
 # RISCV32 specific plugins
 add_subdirectory(riscv32_rocketchip_syscall_plugin)
+add_subdirectory(riscv32_cycle_count_plugin)
 
 
 # Legacy plugins, not tested with the currecnt version of ICEmu
