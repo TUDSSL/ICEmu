@@ -83,6 +83,9 @@ using namespace std;
 using namespace icemu;
 
 class RiscvE21Pipeline {
+  public:
+    typedef std::function<int(cs_insn *insn)> memcost_func_t;
+
   private:
     Emulator &_emu;
     Emulator &getEmulator() { return _emu; }
@@ -94,6 +97,21 @@ class RiscvE21Pipeline {
 
     bool VerifyNextInstructionGuess = true;
     uint64_t NextInstructionGuess = 0;
+
+    memcost_func_t memoryLoadCost;
+    memcost_func_t memoryStoreCost;
+
+    // Default memoryLoadCost
+    static int memoryLoadCost_(cs_insn *insn) {
+      (void)insn;
+      return 2; // Assume a cache hit for now (fastest possible)
+    }
+
+    // Default memoryStoreCost
+    static int memoryStoreCost_(cs_insn *insn) {
+      (void)insn;
+      return 1; // Assume enough spacing for now (fastest possible)
+    }
 
     // Map the disassembled capstone register to ICEmu
     address_t getRegisterValue(unsigned int capstone_reg) {
@@ -138,16 +156,6 @@ class RiscvE21Pipeline {
       }
       // Return the register value
       return getEmulator().getArchitecture().getRiscv32Architecture().registerGet(reg);
-    }
-
-    int memoryLoadCost(cs_insn *insn) {
-      (void)insn;
-      return 2; // Assume a cache hit for now (fastest possible)
-    }
-
-    int memoryStoreCost(cs_insn *insn) {
-      (void)insn;
-      return 1; // Assume enough spacing for now (fastest possible)
     }
 
     address_t divisionLatency(int32_t dividend, int32_t divisor) {
@@ -635,7 +643,26 @@ class RiscvE21Pipeline {
     }
 
   public:
-    RiscvE21Pipeline(Emulator &emu) : _emu(emu) {}
+    RiscvE21Pipeline(Emulator &emu) : _emu(emu) {
+      memoryLoadCost = memoryLoadCost_;
+      memoryStoreCost = memoryStoreCost_;
+    }
+
+    RiscvE21Pipeline(Emulator &emu,
+        memcost_func_t *memoryLoadCostFunc, 
+        memcost_func_t *memoryStoreCostFunc) : _emu(emu) {
+      if (memoryLoadCostFunc == nullptr) {
+        memoryLoadCost = memoryLoadCost_;
+      } else {
+        memoryLoadCost = *memoryLoadCostFunc;
+      }
+
+      if (memoryStoreCostFunc == nullptr) {
+        memoryStoreCost = *memoryStoreCost_;
+      } else {
+        memoryStoreCost = *memoryStoreCostFunc;
+      }
+    }
 
     uint64_t getTotalCycles() { return TotalCycles; }
 
