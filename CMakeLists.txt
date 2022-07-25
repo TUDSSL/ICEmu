@@ -36,7 +36,7 @@ add_subdirectory(src/icemu)
 # Build the plugins
 include(ExternalProject)
 ExternalProject_Add(plugins
-  EXCLUDE_FROM_ALL true
+  EXCLUDE_FROM_ALL false
   DEPENDS ICEmu
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/plugins
   BINARY_DIR ${CMAKE_SOURCE_DIR}/plugins/build
