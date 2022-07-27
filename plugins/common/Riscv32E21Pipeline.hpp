@@ -666,6 +666,14 @@ class RiscvE21Pipeline {
 
     uint64_t getTotalCycles() { return TotalCycles; }
 
+    void setVerifyJumpDestinationGuess(bool flag) {
+      VerifyJumpDestinationGuess = flag;
+    }
+
+    void setVerifyNextInstructionGuess (bool flag) {
+      VerifyNextInstructionGuess = flag;
+    }
+
     void add(address_t address, address_t size) {
       // Verify jumps
       verifyJump(address);
