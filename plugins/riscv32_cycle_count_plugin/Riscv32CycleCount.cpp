@@ -13,6 +13,7 @@
 #include "icemu/hooks/RegisterHook.h"
 
 #include "Riscv32E21Pipeline.hpp"
+#include "PluginArgumentParsing.h"
 
 using namespace std;
 using namespace icemu;
@@ -27,7 +28,18 @@ class Riscv32CycleCount : public HookCode {
 
  public:
   // Always execute
-  Riscv32CycleCount(Emulator &emu) : HookCode(emu, "display_instructions"), Pipeline(emu) {
+  Riscv32CycleCount(Emulator &emu) : HookCode(emu, "riscv32_cycle_count"), Pipeline(emu) {
+    auto verify_jump_arg = PluginArgumentParsing::GetArguments(emu, "riscv32-cycle-count-fno-verify-jump");
+    if (verify_jump_arg.args.size()) {
+      cout << printLeader() << " Disabling VerifyJumpDestinationGuess" << endl;
+      Pipeline.setVerifyJumpDestinationGuess(false);
+    }
+
+    auto verify_next_instr_arg = PluginArgumentParsing::GetArguments(emu, "riscv32-cycle-count-fno-verify-next-instr");
+    if (verify_next_instr_arg.args.size()) {
+      cout << printLeader() << " Disabling setVerifyNextInstructionGuess" << endl;
+      Pipeline.setVerifyNextInstructionGuess(false);
+    }
   }
 
   ~Riscv32CycleCount() {

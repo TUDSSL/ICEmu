@@ -17,9 +17,8 @@ struct arg_t {
   bool has_magic;
 };
 
-inline arg_t GetArguments(icemu::Emulator &emu,
-                                             std::string argument,
-                                             bool magic = true) {
+inline arg_t GetArguments(icemu::Emulator &emu, std::string argument,
+                          std::string extension = "") {
   std::vector<std::string> argvals;
   bool has_magic = false;
 
@@ -29,12 +28,21 @@ inline arg_t GetArguments(icemu::Emulator &emu,
       auto arg_value = a.substr(pos + argument.length());
 
       // Check for magic characters
-      if (magic) {
-        // '%' changes the name to <elf_path>
-        if (arg_value == "%") {
-          arg_value = emu.getElfDir() + "/" + emu.getElfName();
-          has_magic = true;
+      // '%' changes the name to <elf_path>
+      if (arg_value == "%") {
+        if (extension == "") {
+          // A magic character appeared, but there is no extension specified
+          // This should not happen!
+          std::cerr
+              << "PluginArgumentParsing::GetArguments() found the macic character as the "
+                 "argument for: '"
+              << argument
+              << "', but no extension is provided, this will overwrite the .elf file!"
+              << std::endl;
+          assert(false);
         }
+        arg_value = emu.getElfDir() + "/" + emu.getElfName() + extension;
+        has_magic = true;
       }
 
       // Add the argument to the list

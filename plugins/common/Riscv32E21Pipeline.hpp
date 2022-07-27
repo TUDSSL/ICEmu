@@ -670,7 +670,7 @@ class RiscvE21Pipeline {
       VerifyJumpDestinationGuess = flag;
     }
 
-    void setVerifyNextInstructionGuess (bool flag) {
+    void setVerifyNextInstructionGuess(bool flag) {
       VerifyNextInstructionGuess = flag;
     }
 
