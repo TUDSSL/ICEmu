@@ -666,6 +666,10 @@ class RiscvE21Pipeline {
 
     uint64_t getTotalCycles() { return TotalCycles; }
 
+    void addToCycles(int d) {
+      TotalCycles += d;
+    }
+
     void setVerifyJumpDestinationGuess(bool flag) {
       VerifyJumpDestinationGuess = flag;
     }
