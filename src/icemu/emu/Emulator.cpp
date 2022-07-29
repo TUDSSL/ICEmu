@@ -73,6 +73,14 @@ static void hook_code_cb(uc_engine *uc, uint64_t address, uint32_t size, void *u
   arg.size = (address_t)size;
 
   hook_manager.run(address, &arg);
+
+  // Build the argument for AllEvent hooks
+  HookAllEvents::hook_arg_t e_arg;
+  e_arg.event_type = HookAllEvents::EVENT_CODE;
+  e_arg.address = (address_t)address;
+  e_arg.size = (address_t)size;
+
+  hook_manager.run(address, &e_arg);
 }
 
 static void hook_memory_cb(uc_engine *uc, uc_mem_type type, uint64_t address, int size, int64_t value, void *user_data) {
@@ -105,6 +113,16 @@ static void hook_memory_cb(uc_engine *uc, uc_mem_type type, uint64_t address, in
   }
 
   hook_manager.run(address, &arg);
+
+  // Build the argument for AllEvent hooks
+  HookAllEvents::hook_arg_t e_arg;
+  e_arg.event_type = HookAllEvents::EVENT_MEMORY;
+  e_arg.address = (address_t)address;
+  e_arg.size = (address_t)size;
+  e_arg.value = (address_t)value;
+  e_arg.mem_type = arg.mem_type;
+
+  hook_manager.run(address, &e_arg);
 }
 
 bool Emulator::registerCodeHook() {

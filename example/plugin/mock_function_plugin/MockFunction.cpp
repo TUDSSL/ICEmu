@@ -12,10 +12,10 @@
 #include <atomic>
 
 #include "icemu/emu/Emulator.h"
+#include "icemu/emu/Architecture.h"
 #include "icemu/hooks/HookFunction.h"
 #include "icemu/hooks/HookManager.h"
 #include "icemu/hooks/RegisterHook.h"
-#include "icemu/emu/Function.h"
 
 
 using namespace std;
@@ -36,23 +36,20 @@ class MockFunction : public HookFunction {
   void run(hook_arg_t *arg) {
     cout << "Func: " << function_name << " at: " << arg->address << endl;
 
-    //cout << "Registers:" << endl;
-    //getEmulator().getRegisters().dump(cout);
-    Function::Argument<uint32_t> farg1;
-    // Example changing the parse lambda function:
-    //farg1.parse = [&farg1](const char *virtregbuff) {
-    //  std::cout << "Copy" << std::endl;
-    //  memcpy((void *)&farg1.arg, virtregbuff, farg1.size);
-    //};
-    Function::Argument<uint16_t> farg2;
-    Function::Arguments::parse(getRegisters(), farg1, farg2);
+    auto arch = getEmulator().getArchitecture();
 
-    cout << "  Argument: " << farg1.arg << ", " << farg2.arg << endl;
+    address_t arg0 = arch.functionGetArgument(0);
+    address_t arg1 = arch.functionGetArgument(1);
 
-    Function::setReturn(getRegisters(), 42);
-    Function::skip(getRegisters());
-    // Same as:
-    // Function::skip(getRegisters(), 42);
+    cout << "  Argument: " << arg0 << ", " << arg1 << endl;
+
+    // Get generic registers
+    address_t sp = arch.registerGet(Architecture::REG_SP);
+    cout << "  SP register: " << sp << endl;
+
+    // Skip the rest of the function
+    arch.functionSetReturn((uint16_t)42);
+    arch.functionSkip();
   }
 };
 

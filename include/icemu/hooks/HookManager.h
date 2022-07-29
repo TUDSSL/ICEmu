@@ -9,6 +9,7 @@
 #include "icemu/hooks/Hook.h"
 #include "icemu/hooks/HookCode.h"
 #include "icemu/hooks/HookMemory.h"
+#include "icemu/hooks/HookAllEvents.h"
 #include "icemu/hooks/Hooks.h"
 
 namespace icemu {
@@ -17,6 +18,7 @@ class HookManager {
  private:
   Hooks<HookCode> hooks_code_;
   Hooks<HookMemory> hooks_memory_;
+  Hooks<HookAllEvents> hooks_all_events_;
 
   // Used for easy cleanup
   std::list<Hook *> hooks_all;
@@ -48,12 +50,23 @@ class HookManager {
     hooks_memory_.add(hook);
   }
 
+  void add(HookAllEvents *hook) {
+    //std::cout << "Hook Builder adding all events hook: " << hook->name
+    //          << " addr: " << hook << std::endl;
+    track_hook(hook);
+    hooks_all_events_.add(hook);
+  }
+
   void run(address_t address, HookCode::hook_arg_t *arg) {
     hooks_code_.run(address, arg);
   }
 
   void run(address_t address, HookMemory::hook_arg_t *arg) {
     hooks_memory_.run(address, arg);
+  }
+
+  void run(address_t address, HookAllEvents::hook_arg_t *arg) {
+    hooks_all_events_.run(address, arg);
   }
 
   Hook *get(std::string name) {
