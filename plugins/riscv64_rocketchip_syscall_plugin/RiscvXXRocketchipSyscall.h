@@ -74,11 +74,9 @@ class RiscvXXRocketchipSyscall : public icemu::HookMemory {
   RiscvXXRocketchipSyscall(icemu::Emulator &emu) : HookMemory(emu, "syscall") {
     // Get where to store the log file (if any)
     auto name_arg = PluginArgumentParsing::GetArguments(emu, "syscall-print-logfile=");
-    if (name_arg.args.size()) {
-      output_file = name_arg.args[0];
-      if (name_arg.has_magic) {
-        output_file += ".syscall.log";
-      }
+    if (name_arg.size()) {
+      output_file = name_arg[0];
+
       // Open the output file
       output_file_stream.open(output_file, std::ios::out);
       std::cout << printLeader() << " writing output to: " << output_file << std::endl;

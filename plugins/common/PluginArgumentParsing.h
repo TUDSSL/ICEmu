@@ -1,57 +1,51 @@
 #ifndef ICEMU_PLUGINS_PLUGIN_ARGUMENTS_H_
 #define ICEMU_PLUGINS_PLUGIN_ARGUMENTS_H_
+/*
+ *  Special patterns are expanded when parsing the argument. e.g.,
+ *   - %p = path of the ELF file that is executed (including the .elf)
+ *   - %d = directory of the ELF file that is executed
+ *   - %f = the file name of the ELF that is executed
+ *   - %b = the basename of the ELF that is executed
+ */
 
 #include <icemu/emu/types.h>
 #include <cstddef>
 #include <iostream>
 #include <vector>
+#include <regex>
 
 #include "icemu/emu/Emulator.h"
 
-namespace PluginArgumentParsing {
+class PluginArgumentParsing {
+ public:
+  typedef std::vector<std::string> arg_t;
+  
+  static arg_t GetArguments(icemu::Emulator &emu, std::string argument) {
+    std::vector<std::string> argvals;
+  
+    for (const auto &a : emu.getPluginArguments().getArgs()) {
+      auto pos = a.find(argument);
+      if (pos != std::string::npos) {
+        auto arg_string = a.substr(pos + argument.length());
 
-//typedef std::pair<std::vector<std::string>, bool> arg_t;
-
-struct arg_t {
-  std::vector<std::string> args;
-  bool has_magic;
-};
-
-inline arg_t GetArguments(icemu::Emulator &emu, std::string argument,
-                          std::string extension = "") {
-  std::vector<std::string> argvals;
-  bool has_magic = false;
-
-  for (const auto &a : emu.getPluginArguments().getArgs()) {
-    auto pos = a.find(argument);
-    if (pos != std::string::npos) {
-      auto arg_value = a.substr(pos + argument.length());
-
-      // Check for magic characters
-      // '%' changes the name to <elf_path>
-      if (arg_value == "%") {
-        if (extension == "") {
-          // A magic character appeared, but there is no extension specified
-          // This should not happen!
-          std::cerr
-              << "PluginArgumentParsing::GetArguments() found the macic character as the "
-                 "argument for: '"
-              << argument
-              << "', but no extension is provided, this will overwrite the .elf file!"
-              << std::endl;
-          assert(false);
-        }
-        arg_value = emu.getElfDir() + "/" + emu.getElfName() + extension;
-        has_magic = true;
+        std::string p = emu.getElfFile();
+        std::string d = emu.getElfDir();
+        std::string f = emu.getElfName();
+        std::string b = emu.getElfBaseName();
+  
+        // Replace all magic sequences
+        arg_string = std::regex_replace(arg_string, std::regex("\%p"), p);
+        arg_string = std::regex_replace(arg_string, std::regex("\%d"), d);
+        arg_string = std::regex_replace(arg_string, std::regex("\%f"), f);
+        arg_string = std::regex_replace(arg_string, std::regex("\%b"), b);
+  
+        // Add the argument to the list
+        argvals.push_back(arg_string);
       }
-
-      // Add the argument to the list
-      argvals.push_back(arg_value);
     }
+  
+    return argvals;
   }
-
-  return arg_t{argvals, has_magic};
-}
-}  // namespace PluginArgumentParsing
+};
 
 #endif /* ICEMU_PLUGINS_PLUGIN_ARGUMENTS_H_ */

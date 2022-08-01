@@ -34,7 +34,7 @@ class CallCount : public HookCode {
   void processCallCountTrackArguments() {
 
     auto name_arg = PluginArgumentParsing::GetArguments(getEmulator(), "call-count-track=");
-    for (auto &arg : name_arg.args) {
+    for (auto &arg : name_arg) {
       function_names.push_back(arg);
     }
   }

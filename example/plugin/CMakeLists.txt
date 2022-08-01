@@ -21,6 +21,8 @@ include_directories(${ICEMU_ROOT_DIR}/lib/ELFIO)
 include_directories(${ICEMU_ROOT_DIR}/include/)
 link_directories(${ICEMU_ROOT_DIR}/build/)
 
+include_directories(${ICEMU_ROOT_DIR}/plugins/common/)
+
 set(PLUGIN_COMPILE_OPTIONS
     -Wall
     -Wextra
@@ -42,3 +44,4 @@ add_subdirectory(hook_code_plugin)
 add_subdirectory(hook_memory_plugin)
 add_subdirectory(hook_all_events_plugin)
 add_subdirectory(mock_function_plugin)
+add_subdirectory(hook_argument_plugin)

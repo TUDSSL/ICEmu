@@ -136,6 +136,7 @@ class Emulator {
   std::string getElfFile() { return mem_.getElfFile(); }
   std::string getElfDir();
   std::string getElfName();
+  std::string getElfBaseName();
 
 };
 

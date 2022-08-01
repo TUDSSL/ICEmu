@@ -30,13 +30,13 @@ class Riscv32CycleCount : public HookCode {
   // Always execute
   Riscv32CycleCount(Emulator &emu) : HookCode(emu, "riscv32_cycle_count"), Pipeline(emu) {
     auto verify_jump_arg = PluginArgumentParsing::GetArguments(emu, "riscv32-cycle-count-fno-verify-jump");
-    if (verify_jump_arg.args.size()) {
+    if (verify_jump_arg.size()) {
       cout << printLeader() << " Disabling VerifyJumpDestinationGuess" << endl;
       Pipeline.setVerifyJumpDestinationGuess(false);
     }
 
     auto verify_next_instr_arg = PluginArgumentParsing::GetArguments(emu, "riscv32-cycle-count-fno-verify-next-instr");
-    if (verify_next_instr_arg.args.size()) {
+    if (verify_next_instr_arg.size()) {
       cout << printLeader() << " Disabling setVerifyNextInstructionGuess" << endl;
       Pipeline.setVerifyNextInstructionGuess(false);
     }

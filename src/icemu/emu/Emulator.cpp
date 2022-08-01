@@ -207,3 +207,17 @@ string Emulator::getElfName() {
 
   return elf_file_name;
 }
+
+string Emulator::getElfBaseName() {
+  auto elf_file = getElfName();
+
+  auto last_dot = elf_file.find_last_of(".");
+  string elf_base_name;
+
+  if (last_dot != string::npos)
+    elf_base_name = elf_file.substr(0, last_dot);
+  else
+    elf_base_name = elf_file;
+
+  return elf_base_name;
+}
