@@ -5,21 +5,28 @@ cd $BASE_DIR
 
 pushd lib
 
-git submodule update --init --recursive unicorn
+#git submodule update --init --recursive unicorn
 pushd unicorn
 echo "Build unicorn"
-mkdir -p build
-pushd build
-cmake ../
-make -j$(nproc)
-popd
+# If a build already exists (avoid re-configure)
+if [ -d build ]; then
+    pushd build
+    make -j$(nproc)
+    popd
+else
+    mkdir build
+    pushd build
+    cmake ../
+    make -j$(nproc)
+    popd
+fi
+
 popd
 
-git submodule update --init --recursive capstone
+#git submodule update --init --recursive capstone
 pushd capstone
 echo "Build capstone"
 ./make.sh
 popd
 
 popd
-
