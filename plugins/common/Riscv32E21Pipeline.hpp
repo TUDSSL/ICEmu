@@ -1,3 +1,4 @@
+#pragma once
 /**
  *  Based on the E2 32-bit RISC core from SiFive
  *  https://sifive.cdn.prismic.io/sifive/6f0f1515-1249-4ea0-a5b2-79d4aaf920ae_e21_core_complex_manual_21G3.pdf - Chapter 3, page 22
