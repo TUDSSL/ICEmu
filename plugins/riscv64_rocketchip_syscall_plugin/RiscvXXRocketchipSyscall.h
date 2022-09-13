@@ -1,3 +1,4 @@
+#pragma once
 /**
  *  ICEmu loadable plugin (library)
  *
@@ -149,7 +150,7 @@ class RiscvXXRocketchipSyscall : public icemu::HookMemory {
       }
 
       // Set the from_host to 1 signalling that the syscall can continue
-      *mem_from_host = 1;
+      // *mem_from_host = 1;
     }
   }
 };
