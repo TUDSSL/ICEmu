@@ -281,12 +281,19 @@ class RiscvE21Pipeline {
 
         case RISCV_INS_JALR:
           {
-            assert(op_count == 3);
-            auto OpRs1 = operands[1];
-            auto OpImm = operands[2];
-            assert(OpRs1.type == RISCV_OP_REG);
-            assert(OpImm.type == RISCV_OP_IMM);
-            jump_destination = (OpRs1.reg + OpImm.imm) & ~1; // Clear the LSB
+            if (op_count == 1) {
+              auto OpRs1 = operands[0];
+              assert(OpRs1.type == RISCV_OP_REG);
+              jump_destination = OpRs1.reg & ~1; // Clear the LSB
+            } else if (op_count == 3) {
+              auto OpRs1 = operands[1];
+              auto OpImm = operands[2];
+              assert(OpRs1.type == RISCV_OP_REG);
+              assert(OpImm.type == RISCV_OP_IMM);
+              jump_destination = (OpRs1.reg + OpImm.imm) & ~1; // Clear the LSB
+            } else {
+              assert(false && "Unhandled JALR jump operands version");
+            }
           }
           break;
 
