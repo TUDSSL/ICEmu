@@ -65,6 +65,8 @@ class ArchitectureRiscv32 {
     REG_TP  = UC_RISCV_REG_X4,
     REG_RETURN  = UC_RISCV_REG_X10,
 
+    REG_MSTATUS = UC_RISCV_REG_MSTATUS,
+
     REG_PC = UC_RISCV_REG_PC,
   };
 
