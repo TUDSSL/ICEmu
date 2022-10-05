@@ -85,7 +85,8 @@ using namespace icemu;
 
 class RiscvE21Pipeline {
   public:
-    typedef std::function<int(cs_insn *insn)> memcost_func_t;
+    //typedef std::function<int(cs_insn *insn)> memcost_func_t;
+    typedef int (*memcost_func_t)(cs_insn *insn);
 
   private:
     Emulator &_emu;
@@ -657,8 +658,8 @@ class RiscvE21Pipeline {
     }
 
     RiscvE21Pipeline(Emulator &emu,
-        memcost_func_t *memoryLoadCostFunc, 
-        memcost_func_t *memoryStoreCostFunc) : _emu(emu) {
+        memcost_func_t memoryLoadCostFunc, 
+        memcost_func_t memoryStoreCostFunc) : _emu(emu) {
       if (memoryLoadCostFunc == nullptr) {
         memoryLoadCost = memoryLoadCost_;
       } else {
