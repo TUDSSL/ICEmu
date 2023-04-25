@@ -8,5 +8,5 @@ echo "Building ARM code using GCC"
 mkdir -p build-gcc
 pushd build-gcc
 ../cmake-gcc.sh ../
-make
+cmake --build .
 popd
