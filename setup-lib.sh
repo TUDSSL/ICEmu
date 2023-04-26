@@ -3,30 +3,25 @@
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 cd $BASE_DIR
 
+# If MAKEFLAGS was not explicitly set by the user, set it with the number of cores
+# in case the user makes use of the "Unix Makefiles" CMake generator
+if [ -z "$MAKEFLAGS" ]; then
+    export MAKEFLAGS="-j$(nproc)"
+fi
+
 pushd lib
 
 #git submodule update --init --recursive unicorn
-pushd unicorn
 echo "Build unicorn"
-# If a build already exists (avoid re-configure)
-if [ -d build ]; then
-    pushd build
-    make -j$(nproc)
-    popd
-else
-    mkdir build
-    pushd build
-    cmake ../
-    make -j$(nproc)
-    popd
+# Only configure if not done so yet
+if [ ! -d unicorn/build ]; then
+    cmake -S unicorn -B unicorn/build
 fi
-
-popd
+cmake --build unicorn/build
 
 #git submodule update --init --recursive capstone
-pushd capstone
 echo "Build capstone"
-./make.sh
-popd
+cmake -S capstone -B capstone/build -DCMAKE_BUILD_TYPE=Release
+cmake --build capstone/build
 
 popd

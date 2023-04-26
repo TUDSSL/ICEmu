@@ -8,5 +8,5 @@ echo "Building ARM code using Clang"
 mkdir -p build-clang
 pushd build-clang
 ../cmake-clang.sh ../
-make
+cmake --build .
 popd
