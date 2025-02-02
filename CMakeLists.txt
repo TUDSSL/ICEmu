@@ -13,7 +13,7 @@ link_directories(${CMAKE_SOURCE_DIR}/lib/unicorn/build)
 
 #Include Capstone
 include_directories(${CMAKE_SOURCE_DIR}/lib/capstone/include)
-link_directories(${CMAKE_SOURCE_DIR}/lib/capstone)
+link_directories(${CMAKE_SOURCE_DIR}/lib/capstone/build)
 
 #Include ElfIO
 include_directories(${CMAKE_SOURCE_DIR}/lib/ELFIO)
